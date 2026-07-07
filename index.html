@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>戰鬥陀螺大賽級戰術紀錄室 (雲端同步版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        input, select, button {
+            -webkit-tap-highlight-color: transparent;
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 min-h-screen text-slate-100 font-sans antialiased pb-12">
+
+    <div class="container mx-auto px-3 py-4 max-w-xl">
+        <header class="mb-4 border-b border-slate-700 pb-3 flex flex-col gap-2">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h1 class="text-xl font-black text-indigo-400 tracking-wider flex items-center gap-1.5">
+                        🌪️ BEYBLADE X 雲端隨身筆記
+                    </h1>
+                    <p class="text-slate-400 text-xs mt-0.5">跨裝置即時雲端同步 • 電腦手機皆可用</p>
+                </div>
+                <div id="cloud-status" class="bg-slate-800 text-[10px] font-bold px-2 py-1 rounded-full border border-slate-700 flex items-center gap-1 text-amber-400">
+                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> 雲端連線中...
+                </div>
+            </div>
+            <div class="flex justify-end gap-2">
+                <button onclick="fetchCloudData()" class="bg-slate-800 hover:bg-slate-700 text-[11px] font-bold py-1.5 px-3 rounded-lg transition border border-slate-700 text-cyan-400">
+                    🔄 手動刷新雲端
+                </button>
+                <button onclick="exportData()" class="bg-slate-800 hover:bg-slate-700 text-[11px] font-bold py-1.5 px-3 rounded-lg transition border border-slate-700 text-slate-400 text-[10px]">
+                    💾 備份 JSON
+                </button>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-4 gap-1.5 mb-2">
+            <div class="bg-slate-800/80 p-2 rounded-xl border border-slate-700 shadow text-center">
+                <div class="text-[10px] text-slate-400 font-bold">總大賽</div>
+                <div id="stat-total" class="text-xs font-black text-indigo-300 mt-1 truncate">0 場</div>
+            </div>
+            <div class="bg-slate-800/80 p-2 rounded-xl border border-slate-700 shadow text-center">
+                <div class="text-[10px] text-slate-400 font-bold">總對戰</div>
+                <div id="stat-stages" class="text-xs font-black text-emerald-400 mt-1 truncate">0 輪</div>
+            </div>
+            <div class="bg-slate-800/80 p-2 rounded-xl border border-slate-700 shadow text-center">
+                <div class="text-[10px] text-slate-400 font-bold">累計花費</div>
+                <div id="stat-cost" class="text-xs font-black text-amber-400 mt-1 truncate">$0</div>
+            </div>
+            <div class="bg-slate-800/80 p-2 rounded-xl border border-indigo-900/60 bg-indigo-950/20 shadow text-center">
+                <div class="text-[10px] text-indigo-300 font-bold">最佳戰績</div>
+                <div id="stat-best" class="text-xs font-black text-rose-400 mt-1 truncate">無</div>
+            </div>
+        </div>
+
+        <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/80 shadow mb-4 flex flex-col gap-1">
+            <div class="text-[10px] text-blue-400 font-black tracking-wider flex items-center gap-1">
+                📊 我方愛用陀螺熱門榜 (依實際局數出場計)
+            </div>
+            <div id="stat-top-beys" class="text-xs text-slate-300 font-medium grid grid-cols-3 gap-1 mt-0.5">
+                <span class="text-slate-500 text-[11px]">暫無數據</span>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            
+            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-xl">
+                <div class="flex justify-between items-center mb-3 border-b border-slate-700 pb-2">
+                    <h2 id="form-title" class="text-sm font-extrabold text-slate-200 flex items-center gap-1.5">
+                        📝 輸入新賽事
+                    </h2>
+                    <button type="button" id="cancel-edit-btn" class="hidden text-[11px] bg-rose-950 text-rose-400 border border-rose-800 px-2 py-0.5 rounded font-bold" onclick="exitEditMode()">
+                        取消修改
+                    </button>
+                </div>
+                
+                <form id="match-form" class="space-y-3.5">
+                    <input type="hidden" id="editing-id" value="">
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 mb-1">比賽日期</label>
+                            <input type="date" id="date" required class="w-full p-2 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 focus:border-indigo-500 outline-none h-9">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 mb-1">比賽名稱</label>
+                            <input type="text" id="tournament" placeholder="例如：G3 店賽" required class="w-full p-2 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 focus:border-indigo-500 outline-none h-9">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 mb-1">總人數</label>
+                            <input type="text" id="players" placeholder="例如：64人" required class="w-full p-2 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 focus:border-indigo-500 outline-none h-9 font-bold text-indigo-400">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 mb-1">報名費 (元)</label>
+                            <input type="number" id="fee" placeholder="$" class="w-full p-2 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 focus:border-indigo-500 outline-none h-9">
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-950/40 p-2.5 rounded-xl border border-blue-900/60 space-y-2">
+                        <span class="text-[11px] font-black text-blue-400 block">🛡️ 我方此戰登記陀螺庫 (可填 1~6 顆)</span>
+                        <div class="grid grid-cols-3 gap-1.5">
+                            <input type="text" id="my-b1" placeholder="陀螺 1" required oninput="updateDropdownsAll()" class="w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none h-8 text-center font-medium">
+                            <input type="text" id="my-b2" placeholder="陀螺 2" oninput="updateDropdownsAll()" class="w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none h-8 text-center font-medium">
+                            <input type="text" id="my-b3" placeholder="陀螺 3" oninput="updateDropdownsAll()" class="w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none h-8 text-center font-medium">
+                            <input type="text" id="my-b4" placeholder="陀螺 4" oninput="updateDropdownsAll()" class="w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none h-8 text-center font-medium">
+                            <input type="text" id="my-b5" placeholder="陀螺 5" oninput="updateDropdownsAll()" class="w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none h-8 text-center font-medium">
+                            <input type="text" id="my-b6" placeholder="陀螺 6" oninput="updateDropdownsAll()" class="w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none h-8 text-center font-medium">
+                        </div>
+                    </div>
+
+                    <div id="stages-container" class="space-y-4"></div>
+
+                    <button type="button" id="add-stage-btn" class="w-full py-2.5 bg-slate-700 hover:bg-slate-600 text-emerald-400 text-xs font-bold rounded-lg border border-dashed border-emerald-500/50 transition h-10 flex items-center justify-center">
+                        ➕ 新增下一輪賽事
+                    </button>
+
+                    <button type="submit" id="submit-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-lg transition duration-200 shadow-md tracking-wider text-xs h-12">
+                        💾 儲存並同步至雲端
+                    </button>
+                </form>
+            </div>
+
+            <div class="space-y-3">
+                <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 shadow-md space-y-2.5">
+                    <h2 class="text-sm font-extrabold text-slate-200">🔍 戰績歷史與檢索</h2>
+                    
+                    <div class="grid grid-cols-2 gap-2 bg-slate-900/60 p-2 rounded-lg border border-slate-700/50">
+                        <div>
+                            <label class="block text-[10px] text-slate-400 font-bold mb-0.5">開始日期</label>
+                            <input type="date" id="search-start-date" class="w-full p-1 text-[11px] bg-slate-800 border border-slate-700 rounded text-slate-200 outline-none h-7">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-400 font-bold mb-0.5">結束日期</label>
+                            <input type="date" id="search-end-date" class="w-full p-1 text-[11px] bg-slate-800 border border-slate-700 rounded text-slate-200 outline-none h-7">
+                        </div>
+                    </div>
+
+                    <input type="text" id="search-input" placeholder="搜尋關鍵字：比賽、對手、陀螺或人數..." class="w-full p-2 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 focus:border-indigo-500 outline-none h-9">
+                </div>
+
+                <div id="records-list" class="space-y-3"></div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <script>
+        // ==========================================
+        // ⚠️ 貼上您的 Google Apps Script 網頁應用程式 URL 於此處
+        // ==========================================
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxIMA6O5rLQb-iGKEIXtSKi7PcUJ0TLMijw4-Z8aMC4SjlEjQsH3gziup7W09es1cc7/exec"; 
+
+        let matches = [];
+        
+        const matchForm = document.getElementById('match-form');
+        const searchInput = document.getElementById('search-input');
+        const searchStartDate = document.getElementById('search-start-date');
+        const searchEndDate = document.getElementById('search-end-date');
+        const recordsList = document.getElementById('records-list');
+        const stagesContainer = document.getElementById('stages-container');
+        const addStageBtn = document.getElementById('add-stage-btn');
+        const formTitle = document.getElementById('form-title');
+        const cancelEditBtn = document.getElementById('cancel-edit-btn');
+        const submitBtn = document.getElementById('submit-btn');
+        const editingIdInput = document.getElementById('editing-id');
+        const cloudStatus = document.getElementById('cloud-status');
+
+        const scoreRules = {
+            'MY_SPIN': { side: 'my', score: 1, label: '轉停勝利' },
+            'MY_OVER': { side: 'my', score: 2, label: '擊飛勝利' },
+            'MY_BURST': { side: 'my', score: 2, label: '爆裂勝利' },
+            'MY_XTREME': { side: 'my', score: 3, label: '極限勝利' },
+            'DRAW': { side: 'none', score: 0, label: '同時平手' },
+            'OPP_SPIN': { side: 'opp', score: 1, label: '轉停勝利' },
+            'OPP_OVER': { side: 'opp', score: 2, label: '擊飛勝利' },
+            'OPP_BURST': { side: 'opp', score: 2, label: '爆裂勝利' },
+            'OPP_XTREME': { side: 'opp', score: 3, label: '極限勝利' }
+        };
+
+        const stageOptions = ["預賽輪", "128強賽", "64強賽", "32強賽", "16強賽", "8強賽", "4強準決賽", "季軍賽", "👑 冠軍總決賽"];
+
+        // 🟢 從雲端 Google Sheets 抓取最新數據
+        async function fetchCloudData() {
+            setCloudStatus("連線中...", "amber");
+            if(!GAS_URL || GAS_URL.includes("請在此處貼上")) {
+                setCloudStatus("未配置網址", "rose");
+                // 降級讀取本地當備用
+                matches = JSON.parse(localStorage.getItem('beyblade_multistage_v5')) || [];
+                renderDashboard();
+                filterAndRenderList();
+                return;
+            }
+            try {
+                const response = await fetch(GAS_URL);
+                if (response.ok) {
+                    matches = await response.json();
+                    // 同步寫入一份到本地防止斷網
+                    localStorage.setItem('beyblade_multistage_v5', JSON.stringify(matches));
+                    setCloudStatus("雲端已同步", "emerald");
+                    renderDashboard();
+                    filterAndRenderList();
+                } else {
+                    throw new Error("回應錯誤");
+                }
+            } catch (error) {
+                console.error(error);
+                setCloudStatus("同步失敗/離線", "rose");
+                matches = JSON.parse(localStorage.getItem('beyblade_multistage_v5')) || [];
+                renderDashboard();
+                filterAndRenderList();
+            }
+        }
+
+        // 🔵 上傳儲存最新數據到雲端 Google Sheets
+        async function saveCloudData(updatedMatches) {
+            setCloudStatus("儲存中...", "amber");
+            localStorage.setItem('beyblade_multistage_v5', JSON.stringify(updatedMatches));
+            
+            if(!GAS_URL || GAS_URL.includes("請在此處貼上")) {
+                alert("未配置雲端網址，資料目前僅存在此瀏覽器！");
+                setCloudStatus("僅儲存本地", "rose");
+                return;
+            }
+
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "save", matches: updatedMatches })
+                });
+                const result = await response.json();
+                if (result.status === "success") {
+                    setCloudStatus("雲端已同步", "emerald");
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                console.error(error);
+                alert("雲端儲存失敗，但已為您保存在本地瀏覽器！請確認網路或 GAS 配置。");
+                setCloudStatus("離線/僅本地", "rose");
+            }
+        }
+
+        function setCloudStatus(text, color) {
+            let dotColor = "bg-amber-400";
+            let textColor = "text-amber-400";
+            if (color === "emerald") { dotColor = "bg-emerald-400"; textColor = "text-emerald-400"; }
+            if (color === "rose") { dotColor = "bg-rose-500"; textColor = "text-rose-500"; }
+            
+            cloudStatus.className = `bg-slate-800 text-[10px] font-bold px-2 py-1 rounded-full border border-slate-700 flex items-center gap-1 ${textColor}`;
+            cloudStatus.innerHTML = `<span class="w-2 h-2 rounded-full ${dotColor} ${color === 'amber' ? 'animate-pulse':''}"></span> ${text}`;
+        }
+
+        function createStageBlock(savedStageData = null) {
+            const stageIndex = stagesContainer.children.length + 1;
+            const block = document.createElement('div');
+            block.className = 'stage-block bg-slate-900/80 p-3 rounded-xl border border-slate-700 relative space-y-3';
+            block.setAttribute('data-sidx', stageIndex);
+
+            let selectOptionsHtml = stageOptions.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+
+            block.innerHTML = `
+                <div class="flex justify-between items-center border-b border-slate-700 pb-1.5">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[10px] font-black text-amber-400 bg-amber-950/80 px-1.5 py-0.5 rounded border border-amber-900/50">#${stageIndex}</span>
+                        <select class="stage-name-select bg-slate-800 border border-slate-600 rounded text-xs p-1 font-bold text-slate-200 outline-none h-7">
+                            ${selectOptionsHtml}
+                        </select>
+                    </div>
+                    ${stageIndex > 1 ? `<button type="button" class="text-xs text-rose-400 font-bold px-1" onclick="this.closest('.stage-block').remove(); updateStageLabels(); calculateScoresAll();">移除</button>` : ''}
+                </div>
+
+                <div class="space-y-1.5 bg-red-950/10 p-2 rounded-lg border border-red-900/20">
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-bold text-red-400 shrink-0">對手名字:</span>
+                        <input type="text" class="opp-name p-1 w-full text-xs bg-slate-800 border border-slate-700 rounded text-slate-200 outline-none font-bold h-7" placeholder="對手稱呼" required>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-[10px] font-bold text-red-400">對手陀螺登記 (選填)</label>
+                        <div class="grid grid-cols-3 gap-1">
+                            <input type="text" class="opp-b1 p-1 text-[11px] bg-slate-800 border border-slate-700 rounded text-slate-200 outline-none text-center h-7" placeholder="陀螺1" oninput="updateDropdownsAll()">
+                            <input type="text" class="opp-b2 p-1 text-[11px] bg-slate-800 border border-slate-700 rounded text-slate-200 outline-none text-center h-7" placeholder="陀螺2" oninput="updateDropdownsAll()">
+                            <input type="text" class="opp-b3 p-1 text-[11px] bg-slate-800 border border-slate-700 rounded text-slate-200 outline-none text-center h-7" placeholder="陀螺3" oninput="updateDropdownsAll()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[11px] font-bold text-slate-400">🥊 局數紀錄 (上限 7 局)</span>
+                        <span class="round-score-badge text-[10px] text-indigo-300 bg-slate-800 px-1.5 py-0.5 rounded font-mono font-bold">0 : 0</span>
+                    </div>
+                    <div class="rounds-list-container space-y-1.5"></div>
+                    <button type="button" class="add-round-btn-inner text-[11px] text-indigo-400 border border-dashed border-indigo-500/40 p-1.5 rounded w-full hover:bg-indigo-950/20 transition font-bold h-8 flex items-center justify-center">
+                        + 新增下一局
+                    </button>
+                </div>
+
+                <div class="flex justify-between items-center bg-slate-800/60 p-1.5 rounded border border-slate-700/50">
+                    <label class="text-xs font-bold text-slate-400">此輪結果：</label>
+                    <select class="stage-result bg-slate-900 border border-slate-600 rounded text-xs p-1 font-black text-emerald-400 outline-none h-7">
+                        <option value="WIN" class="text-emerald-400">🏆 成功晉級 / 獲勝</option>
+                        <option value="LOSE" class="text-rose-400">❌ 不幸淘汰 / 戰敗</option>
+                    </select>
+                </div>
+            `;
+
+            stagesContainer.appendChild(block);
+
+            const roundsListContainer = block.querySelector('.rounds-list-container');
+            const addRoundBtnInner = block.querySelector('.add-round-btn-inner');
+
+            addRoundBtnInner.addEventListener('click', () => {
+                if (roundsListContainer.children.length >= 7) {
+                    alert('每輪最多記錄 7 局唷！');
+                    return;
+                }
+                createRoundRowInner(roundsListContainer, roundsListContainer.children.length + 1);
+                updateDropdownsAll();
+                calculateScoresAll();
+            });
+
+            if (savedStageData) {
+                block.querySelector('.stage-name-select').value = savedStageData.stageName;
+                block.querySelector('.opp-name').value = savedStageData.oppName;
+                block.querySelector('.opp-b1').value = savedStageData.oppSetups?.[0] || '';
+                block.querySelector('.opp-b2').value = savedStageData.oppSetups?.[1] || '';
+                block.querySelector('.opp-b3').value = savedStageData.oppSetups?.[2] || '';
+                block.querySelector('.stage-result').value = savedStageData.stageResult;
+
+                savedStageData.rounds.forEach((r, rIdx) => {
+                    const outcomeKey = findOutcomeKey(r.winnerSide, r.outcomeType);
+                    createRoundRowInner(roundsListContainer, rIdx + 1, r.myUsed, r.oppUsed, outcomeKey);
+                });
+            } else {
+                createRoundRowInner(roundsListContainer, 1);
+            }
+
+            if(!savedStageData && stageIndex > 1) {
+                const prevSelect = stagesContainer.children[stageIndex - 2].querySelector('.stage-name-select').value;
+                const prevIdx = stageOptions.indexOf(prevSelect);
+                if(prevIdx !== -1 && prevIdx + 1 < stageOptions.length) {
+                    block.querySelector('.stage-name-select').value = stageOptions[prevIdx + 1];
+                }
+            }
+        }
+
+        function createRoundRowInner(container, rIdx, savedMyUsed='', savedOppUsed='', savedOutcomeKey='MY_SPIN') {
+            const row = document.createElement('div');
+            row.className = 'round-row-inner flex items-center gap-1 bg-slate-950 p-1.5 rounded border border-slate-800 text-xs';
+            row.setAttribute('data-ridx', rIdx);
+            row.innerHTML = `
+                <div class="font-bold text-indigo-400 shrink-0 w-8 text-center text-[10px]">G${rIdx}</div>
+                <div class="flex-1 min-w-0">
+                    <select class="my-select-inner w-full p-1 bg-slate-900 border border-slate-700 rounded text-slate-200 text-[11px] h-7"></select>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <select class="opp-select-inner w-full p-1 bg-slate-900 border border-slate-700 rounded text-slate-200 text-[11px] h-7"></select>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <select class="outcome-select-inner w-full p-1 bg-slate-900 border border-slate-700 rounded text-slate-200 font-bold text-[11px] h-7" onchange="calculateScoresAll()">
+                        <option value="MY_SPIN">我:轉停(+1)</option>
+                        <option value="MY_OVER">我:擊飛(+2)</option>
+                        <option value="MY_BURST">我:爆裂(+2)</option>
+                        <option value="MY_XTREME">我:極限(+3)</option>
+                        <option value="DRAW">平手(+0)</option>
+                        <option value="OPP_SPIN">敵:轉停(+1)</option>
+                        <option value="OPP_OVER">敵:擊飛(+2)</option>
+                        <option value="OPP_BURST">敵:爆裂(+2)</option>
+                        <option value="OPP_XTREME">敵:極限(+3)</option>
+                    </select>
+                </div>
+                <div class="shrink-0 w-4 text-center">
+                    ${rIdx > 1 ? `<button type="button" class="text-rose-400 font-black px-1 text-sm" onclick="this.closest('.round-row-inner').remove(); updateRoundLabels(this); calculateScoresAll();">×</button>` : ''}
+                </div>
+            `;
+            container.appendChild(row);
+
+            row.querySelector('.my-select-inner').setAttribute('data-pending', savedMyUsed);
+            row.querySelector('.opp-select-inner').setAttribute('data-pending', savedOppUsed);
+            row.querySelector('.outcome-select-inner').value = savedOutcomeKey;
+        }
+
+        function updateStageLabels() {
+            document.querySelectorAll('.stage-block').forEach((block, idx) => {
+                block.setAttribute('data-sidx', idx + 1);
+                block.querySelector('.bg-amber-950\/80').innerText = `#${idx + 1}`;
+            });
+        }
+
+        function updateRoundLabels(btn) {
+            const container = btn?.closest('.rounds-list-container');
+            if(!container) return;
+            container.querySelectorAll('.round-row-inner').forEach((row, idx) => {
+                row.setAttribute('data-ridx', idx + 1);
+                row.querySelector('.text-[10px]').innerText = `G${idx + 1}`;
+            });
+        }
+
+        function updateDropdownsAll() {
+            const b1 = document.getElementById('my-b1').value || '我1';
+            const b2 = document.getElementById('my-b2').value || '';
+            const b3 = document.getElementById('my-b3').value || '';
+            const b4 = document.getElementById('my-b4').value || '';
+            const b5 = document.getElementById('my-b5').value || '';
+            const b6 = document.getElementById('my-b6').value || '';
+
+            let myOptionsHtml = `<option value="${b1}">${b1}</option>`;
+            if(b2) myOptionsHtml += `<option value="${b2}">${b2}</option>`;
+            if(b3) myOptionsHtml += `<option value="${b3}">${b3}</option>`;
+            if(b4) myOptionsHtml += `<option value="${b4}">${b4}</option>`;
+            if(b5) myOptionsHtml += `<option value="${b5}">${b5}</option>`;
+            if(b6) myOptionsHtml += `<option value="${b6}">${b6}</option>`;
+
+            document.querySelectorAll('.stage-block').forEach(block => {
+                const oppName = block.querySelector('.opp-name').value || '敵';
+                const ob1 = block.querySelector('.opp-b1').value || `${oppName}1`;
+                const ob2 = block.querySelector('.opp-b2').value || '';
+                const ob3 = block.querySelector('.opp-b3').value || '';
+
+                let oppOptionsHtml = `<option value="${ob1}">${ob1}</option>`;
+                if(ob2) oppOptionsHtml += `<option value="${ob2}">${ob2}</option>`;
+                if(ob3) oppOptionsHtml += `<option value="${ob3}">${ob3}</option>`;
+
+                block.querySelectorAll('.round-row-inner').forEach(row => {
+                    const mySel = row.querySelector('.my-select-inner');
+                    const oppSel = row.querySelector('.opp-select-inner');
+                    
+                    const oldMy = mySel.getAttribute('data-pending') || mySel.value;
+                    const oldOpp = oppSel.getAttribute('data-pending') || oppSel.value;
+                    
+                    mySel.removeAttribute('data-pending');
+                    oppSel.removeAttribute('data-pending');
+
+                    mySel.innerHTML = myOptionsHtml;
+                    oppSel.innerHTML = oppOptionsHtml;
+
+                    if(oldMy) {
+                        if (!Array.from(mySel.options).some(o => o.value === oldMy)) {
+                            mySel.add(new Option(oldMy, oldMy));
+                        }
+                        mySel.value = oldMy;
+                    }
+                    if(oldOpp) {
+                        if (!Array.from(oppSel.options).some(o => o.value === oldOpp)) {
+                            oppSel.add(new Option(oldOpp, oldOpp));
+                        }
+                        oppSel.value = oldOpp;
+                    }
+                });
+            });
+        }
+
+        function calculateScoresAll() {
+            document.querySelectorAll('.stage-block').forEach(block => {
+                let myTotal = 0;
+                let oppTotal = 0;
+                block.querySelectorAll('.outcome-select-inner').forEach(select => {
+                    const rule = scoreRules[select.value];
+                    if(rule.side === 'my') myTotal += rule.score;
+                    if(rule.side === 'opp') oppTotal += rule.score;
+                });
+                block.querySelector('.round-score-badge').innerText = `${myTotal} : ${oppTotal}`;
+                
+                const resSelect = block.querySelector('.stage-result');
+                if (myTotal > oppTotal) {
+                    resSelect.className = "stage-result bg-slate-900 border border-slate-600 rounded text-xs p-1 font-black text-emerald-400 outline-none h-7";
+                } else if (oppTotal > myTotal) {
+                    resSelect.className = "stage-result bg-slate-900 border border-slate-600 rounded text-xs p-1 font-black text-rose-400 outline-none h-7";
+                }
+            });
+        }
+
+        function findOutcomeKey(side, label) {
+            if (side === 'none') return 'DRAW';
+            if (side === 'my') {
+                if (label.includes('轉停')) return 'MY_SPIN';
+                if (label.includes('擊飛')) return 'MY_OVER';
+                if (label.includes('爆裂')) return 'MY_BURST';
+                if (label.includes('極限')) return 'MY_XTREME';
+            }
+            if (side === 'opp') {
+                if (label.includes('轉停')) return 'OPP_SPIN';
+                if (label.includes('擊飛')) return 'OPP_OVER';
+                if (label.includes('爆裂')) return 'OPP_BURST';
+                if (label.includes('極限')) return 'OPP_XTREME';
+            }
+            return 'DRAW';
+        }
+
+        addStageBtn.addEventListener('click', () => {
+            createStageBlock();
+            updateDropdownsAll();
+            calculateScoresAll();
+        });
+
+        matchForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const stagesData = [];
+            document.querySelectorAll('.stage-block').forEach(block => {
+                const roundsData = [];
+                let totalMyScore = 0;
+                let totalOppScore = 0;
+
+                block.querySelectorAll('.round-row-inner').forEach(row => {
+                    const outcomeKey = row.querySelector('.outcome-select-inner').value;
+                    const rule = scoreRules[outcomeKey];
+                    
+                    if(rule.side === 'my') totalMyScore += rule.score;
+                    if(rule.side === 'opp') totalOppScore += rule.score;
+
+                    roundsData.push({
+                        roundNum: `第 ${row.getAttribute('data-ridx')} 局`,
+                        myUsed: row.querySelector('.my-select-inner').value,
+                        oppUsed: row.querySelector('.opp-select-inner').value,
+                        outcomeType: rule.label,
+                        winnerSide: rule.side,
+                        pointsEarned: rule.score
+                    });
+                });
+
+                stagesData.push({
+                    stageName: block.querySelector('.stage-name-select').value,
+                    oppName: block.querySelector('.opp-name').value,
+                    oppSetups: [
+                        block.querySelector('.opp-b1').value,
+                        block.querySelector('.opp-b2').value,
+                        block.querySelector('.opp-b3').value
+                    ].filter(Boolean),
+                    rounds: roundsData,
+                    totalMyScore: totalMyScore,
+                    totalOppScore: totalOppScore,
+                    stageResult: block.querySelector('.stage-result').value
+                });
+            });
+
+            const matchData = {
+                date: document.getElementById('date').value,
+                tournament: document.getElementById('tournament').value,
+                players: document.getElementById('players').value,
+                fee: Number(document.getElementById('fee').value) || 0,
+                mySetups: [
+                    document.getElementById('my-b1').value,
+                    document.getElementById('my-b2').value,
+                    document.getElementById('my-b3').value,
+                    document.getElementById('my-b4').value,
+                    document.getElementById('my-b5').value,
+                    document.getElementById('my-b6').value
+                ].filter(Boolean),
+                stages: stagesData
+            };
+
+            const editingId = editingIdInput.value;
+            if (editingId) {
+                matchData.id = Number(editingId);
+                const index = matches.findIndex(m => m.id === Number(editingId));
+                if (index !== -1) matches[index] = matchData;
+            } else {
+                matchData.id = Date.now();
+                matches.unshift(matchData);
+            }
+
+            // 儲存並進行雲端同步
+            await saveCloudData(matches);
+            renderDashboard();
+            filterAndRenderList();
+            exitEditMode();
+        });
+
+        function editMatch(id) {
+            const target = matches.find(m => m.id === id);
+            if(!target) return;
+
+            editingIdInput.value = target.id;
+            formTitle.innerHTML = `✏️ 正在修改大賽`;
+            submitBtn.innerText = `🔄 更新雲端大賽紀錄`;
+            cancelEditBtn.classList.remove('hidden');
+
+            document.getElementById('date').value = target.date;
+            document.getElementById('tournament').value = target.tournament;
+            document.getElementById('players').value = target.players;
+            document.getElementById('fee').value = target.fee;
+
+            document.getElementById('my-b1').value = target.mySetups?.[0] || '';
+            document.getElementById('my-b2').value = target.mySetups?.[1] || '';
+            document.getElementById('my-b3').value = target.mySetups?.[2] || '';
+            document.getElementById('my-b4').value = target.mySetups?.[3] || '';
+            document.getElementById('my-b5').value = target.mySetups?.[4] || '';
+            document.getElementById('my-b6').value = target.mySetups?.[5] || '';
+
+            stagesContainer.innerHTML = '';
+            target.stages.forEach(stg => createStageBlock(stg));
+
+            updateDropdownsAll();
+            calculateScoresAll();
+            document.getElementById('match-form').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function exitEditMode() {
+            editingIdInput.value = '';
+            formTitle.innerHTML = `📝 輸入新賽事`;
+            submitBtn.innerText = `💾 儲存並同步至雲端`;
+            cancelEditBtn.classList.add('hidden');
+            matchForm.reset();
+            document.getElementById('date').value = new Date().toISOString().split('T')[0];
+
+            stagesContainer.innerHTML = '';
+            createStageBlock();
+            updateDropdownsAll();
+            calculateScoresAll();
+        }
+
+        async function deleteMatch(id) {
+            if(confirm('確定要刪除這筆大賽的所有紀錄嗎？(將即時同步至雲端)')) {
+                matches = matches.filter(m => m.id !== id);
+                if (editingIdInput.value == id) exitEditMode();
+                await saveCloudData(matches);
+                renderDashboard();
+                filterAndRenderList();
+            }
+        }
+
+        function renderDashboard() {
+            const total = matches.length;
+            const totalCost = matches.reduce((sum, m) => sum + m.fee, 0);
+            let totalStagesCount = 0;
+            
+            let maxStageIndex = -1;
+            const beyCounts = {};
+
+            matches.forEach(m => {
+                totalStagesCount += m.stages ? m.stages.length : 0;
+                if(m.stages) {
+                    m.stages.forEach(s => {
+                        const idx = stageOptions.indexOf(s.stageName);
+                        if(idx > maxStageIndex) maxStageIndex = idx;
+
+                        if(s.rounds) {
+                            s.rounds.forEach(r => {
+                                if(r.myUsed && r.myUsed.trim() !== "") {
+                                    const name = r.myUsed.trim();
+                                    beyCounts[name] = (beyCounts[name] || 0) + 1;
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+
+            document.getElementById('stat-total').innerText = `${total} 場`;
+            document.getElementById('stat-stages').innerText = `${totalStagesCount} 輪`;
+            document.getElementById('stat-cost').innerText = `$${totalCost}`;
+            document.getElementById('stat-best').innerText = maxStageIndex !== -1 ? stageOptions[maxStageIndex] : "無";
+
+            const sortedBeys = Object.entries(beyCounts).sort((a, b) => b[1] - a[1]);
+            const topBeysContainer = document.getElementById('stat-top-beys');
+            if (sortedBeys.length === 0) {
+                topBeysContainer.innerHTML = `<span class="text-slate-500 text-[11px] col-span-3">暫無局數數據</span>`;
+            } else {
+                let html = '';
+                const medals = ["🥇", "🥈", "🥉"];
+                const colors = ["text-amber-400 font-bold", "text-slate-300 font-bold", "text-amber-600 font-bold"];
+                for (let i = 0; i < Math.min(3, sortedBeys.length); i++) {
+                    html += `
+                        <div class="bg-slate-900/50 px-2 py-1 rounded border border-slate-700/60 truncate flex flex-col items-center">
+                            <span class="text-[10px] scale-90">${medals[i]} Top ${i+1}</span>
+                            <span class="${colors[i]} text-[11px] truncate w-full text-center mt-0.5">${sortedBeys[i][0]}</span>
+                            <span class="text-[9px] text-slate-400 scale-90">${sortedBeys[i][1]} 局</span>
+                        </div>
+                    `;
+                }
+                topBeysContainer.innerHTML = html;
+            }
+        }
+
+        function filterAndRenderList() {
+            const keyword = searchInput.value.toLowerCase();
+            const startVal = searchStartDate.value;
+            const endVal = searchEndDate.value;
+
+            recordsList.innerHTML = '';
+            
+            const filtered = matches.filter(m => {
+                if (startVal && m.date < startVal) return false;
+                if (endVal && m.date > endVal) return false;
+
+                const myStr = m.mySetups ? m.mySetups.join(' ') : '';
+                let oppsStr = '';
+                let stagesStr = '';
+                if(m.stages) {
+                    m.stages.forEach(s => {
+                        oppsStr += (s.oppName || '') + ' ' + (s.oppSetups ? s.oppSetups.join(' ') : '') + ' ';
+                        stagesStr += (s.stageName || '') + ' ';
+                    });
+                }
+                
+                return m.tournament.toLowerCase().includes(keyword) || 
+                       myStr.toLowerCase().includes(keyword) || 
+                       oppsStr.toLowerCase().includes(keyword) ||
+                       stagesStr.toLowerCase().includes(keyword) ||
+                       m.players.toString().toLowerCase().includes(keyword);
+            });
+
+            if (filtered.length === 0) {
+                recordsList.innerHTML = `<div class="text-center p-6 bg-slate-800 border border-slate-700 rounded-xl text-slate-500 text-xs">沒有符合搜尋條件的對戰紀錄</div>`;
+                return;
+            }
+
+            filtered.forEach(m => {
+                const card = document.createElement('div');
+                card.className = `bg-slate-800 p-4 rounded-xl border border-slate-700 shadow relative`;
+                
+                let stagesHtml = '';
+                if(m.stages) {
+                    m.stages.forEach(s => {
+                        const isWin = s.stageResult === 'WIN';
+                        let roundsRows = '';
+                        
+                        if(s.rounds) {
+                            s.rounds.forEach(r => {
+                                let scoreBadge = '';
+                                if (r.winnerSide === 'my') {
+                                    scoreBadge = `<span class="text-emerald-400 font-bold bg-emerald-950/60 px-1 py-0.5 rounded text-[9px]">我 +${r.pointsEarned}</span>`;
+                                } else if (r.winnerSide === 'opp') {
+                                    scoreBadge = `<span class="text-rose-400 font-bold bg-rose-950/60 px-1 py-0.5 rounded text-[9px]">敵 +${r.pointsEarned}</span>`;
+                                } else {
+                                    scoreBadge = `<span class="text-slate-400 bg-slate-900 px-1 py-0.5 rounded text-[9px]">平</span>`;
+                                }
+
+                                roundsRows += `
+                                    <div class="flex items-center justify-between text-[11px] p-1 bg-slate-900/40 my-0.5 rounded">
+                                        <span class="text-slate-400 truncate max-w-[150px]">${r.roundNum} (${r.myUsed || '未設定'} vs ${r.oppUsed || '未設定'})</span>
+                                        <span class="flex items-center gap-1">${scoreBadge} <span class="scale-90 origin-right">${r.outcomeType}</span></span>
+                                    </div>
+                                `;
+                            });
+                        }
+
+                        stagesHtml += `
+                            <div class="mt-2.5 p-2 rounded-lg border ${isWin ? 'border-emerald-500/20 bg-emerald-950/10' : 'border-rose-500/20 bg-rose-950/10'}">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-xs font-black text-amber-300">${s.stageName}</span>
+                                    <span class="text-[11px] font-bold ${isWin ? 'text-emerald-400':'text-rose-400'}">
+                                        ${isWin ? '🏆 晉級' : '❌ 淘汰'} (${s.totalMyScore} : ${s.totalOppScore})
+                                    </span>
+                                </div>
+                                <div class="text-[11px] text-slate-400 mb-1">
+                                    ⚔️ 對手: <span class="text-slate-200 font-bold">${s.oppName}</span> ${s.oppSetups?.length ? `[${s.oppSetups.join(',')}]`:''}
+                                </div>
+                                <div class="space-y-0.5 border-t border-slate-800/60 pt-1">
+                                    ${roundsRows}
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                let displayPlayers = m.players;
+                if (!isNaN(displayPlayers)) displayPlayers += " 人賽";
+                else if (!displayPlayers.includes("賽") && !displayPlayers.includes("人")) displayPlayers += " 賽";
+
+                card.innerHTML = `
+                    <div class="absolute top-3 right-3 flex gap-2.5 text-[11px] font-bold">
+                        <button onclick="editMatch(${m.id})" class="text-indigo-400">✏️ 編輯</button>
+                        <button onclick="deleteMatch(${m.id})" class="text-slate-500">🗑️ 刪除</button>
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-1 items-center text-[9px] font-bold text-slate-400 mb-1">
+                        <span class="bg-slate-900 px-1.5 py-0.5 rounded text-slate-300 border border-slate-700">${m.date}</span>
+                        <span class="bg-indigo-950 px-1.5 py-0.5 rounded text-indigo-300 border border-indigo-900/40">${displayPlayers}</span>
+                        <span>$${m.fee}</span>
+                    </div>
+
+                    <h3 class="text-sm font-black text-slate-100 pr-12 truncate">${m.tournament}</h3>
+                    <div class="text-[11px] text-slate-400 mt-0.5">我方全程庫：<span class="text-blue-400 font-medium">${m.mySetups ? m.mySetups.join(', ') : ''}</span></div>
+
+                    <div class="space-y-1">
+                        ${stagesHtml}
+                    </div>
+                `;
+                recordsList.appendChild(card);
+            });
+        }
+
+        function exportData() {
+            if(matches.length === 0) { alert('目前無戰績可匯出！'); return; }
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(matches, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `beyblade_cloud_backup.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        searchInput.addEventListener('input', filterAndRenderList);
+        searchStartDate.addEventListener('change', filterAndRenderList);
+        searchEndDate.addEventListener('change', filterAndRenderList);
+
+        document.getElementById('date').value = new Date().toISOString().split('T')[0];
+        
+        createStageBlock();
+        updateDropdownsAll();
+        
+        // 網頁開啟時，自動與雲端進行同步
+        fetchCloudData();
+    </script>
+</body>
+</html>
