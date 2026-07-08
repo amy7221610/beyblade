@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>戰鬥陀螺紀錄站 - BeybladeX</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         input, select, button { -webkit-tap-highlight-color: transparent; }
@@ -16,27 +16,27 @@
         }
     </style>
 </head>
-<body class="bg-slate-900 min-h-screen text-slate-100 font-sans antialiased pb-12">
+<body class="bg-gray-900 min-h-screen text-gray-100 font-sans antialiased pb-12">
 
     <div class="container mx-auto px-3 py-4 max-w-xl">
-        <header class="mb-4 border-b border-slate-700 pb-3 flex flex-col gap-2">
+        <header class="mb-4 border-b border-gray-700 pb-3 flex flex-col gap-2">
             <div class="flex justify-between items-end">
                 <div>
                     <div class="text-sm font-black text-white tracking-widest uppercase glow-text">BeybladeX</div>
                     <h1 class="text-2xl font-black text-indigo-400 tracking-wider mt-0.5">戰鬥陀螺紀錄站</h1>
-                    <p class="text-slate-400 text-[11px] mt-0.5">多用戶雲端版 • 賽制計分精準版</p>
+                    <p class="text-gray-400 text-xs mt-0.5">多用戶雲端版 • 賽制計分精準版</p>
                 </div>
                 <div id="user-status-area" class="text-right"></div>
             </div>
         </header>
 
-        <div id="auth-section" class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl space-y-4">
+        <div id="auth-section" class="bg-gray-800 p-5 rounded-xl border border-gray-700 shadow-xl space-y-4">
             <div class="text-center space-y-1">
-                <h3 class="text-md font-bold text-slate-200">🏆 歡迎來到全台陀螺選手戰績庫</h3>
-                <p class="text-xs text-slate-400">註冊專屬帳號，即可擁有個人化大數據分析與隨身雲端筆記。</p>
+                <h3 class="text-md font-bold text-gray-200">🏆 歡迎來到陀螺選手戰績庫</h3>
+                <p class="text-xs text-gray-400">註冊專屬帳號，即可擁有個人化大數據分析與隨身雲端筆記。</p>
             </div>
             
-            <button id="btn-google" class="w-full bg-white hover:bg-slate-100 text-slate-900 font-bold text-xs py-2.5 rounded-lg transition h-11 flex items-center justify-center gap-2 border border-slate-300 shadow-sm">
+            <button id="btn-google" class="w-full bg-white hover:bg-gray-100 text-gray-900 font-bold text-xs py-2.5 rounded-lg transition h-11 flex items-center justify-center gap-2 border border-gray-300 shadow-sm（按鈕樣式）">
                 <svg class="w-4 h-4" viewBox="0 0 24 24">
                     <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.866-3.577-7.866-8s3.536-8 7.866-8c2.46 0 4.105 1.025 5.047 1.926l3.327-3.2A12.986 12.986 0 0 0 12.24 0c-7.18 0-13 5.82-13 13s5.82 13 13 13c7.5 0 12.48-5.26 12.48-12.69 0-.85-.09-1.5-.2-2.025H12.24z"/>
                 </svg>
@@ -44,20 +44,20 @@
             </button>
 
             <div class="relative flex py-1 items-center">
-                <div class="flex-grow border-t border-slate-700"></div>
-                <span class="flex-shrink mx-3 text-slate-500 text-[10px] font-bold">或使用傳統信箱</span>
-                <div class="flex-grow border-t border-slate-700"></div>
+                <div class="flex-grow border-t border-gray-700"></div>
+                <span class="flex-shrink mx-3 text-gray-500 text-xs font-bold">或使用傳統信箱</span>
+                <div class="flex-grow border-t border-gray-700"></div>
             </div>
 
             <div class="space-y-2">
-                <input type="email" id="auth-email" placeholder="輸入電子信箱 Email" class="w-full p-2.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none h-10">
-                <input type="password" id="auth-password" placeholder="密碼 (至少 6 位數)" class="w-full p-2.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none h-10">
+                <input type="email" id="auth-email" placeholder="輸入電子信箱 Email" class="w-full p-2.5 text-xs bg-gray-900 border border-gray-700 rounded-lg text-gray-200 outline-none h-10">
+                <input type="password" id="auth-password" placeholder="密碼 (至少 6 位數)" class="w-full p-2.5 text-xs bg-gray-900 border border-gray-700 rounded-lg text-gray-200 outline-none h-10">
                 
                 <div class="grid grid-cols-2 gap-2 pt-1">
                     <button id="btn-login" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2.5 rounded-lg transition h-10">
                         🔑 登入帳號
                     </button>
-                    <button id="btn-signup" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold py-2.5 rounded-lg transition h-10 border border-slate-600">
+                    <button id="btn-signup" class="bg-gray-700 hover:bg-gray-600 text-gray-200 text-xs font-bold py-2.5 rounded-lg transition h-10 border border-gray-600">
                         📝 註冊新帳號
                     </button>
                 </div>
@@ -66,93 +66,93 @@
 
         <div id="main-app-section" class="hidden space-y-4">
             <div class="grid grid-cols-3 gap-2">
-                <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700 text-center">
-                    <div class="text-[10px] text-slate-400 font-bold">總參賽</div>
+                <div class="bg-gray-800 p-2.5 rounded-xl border border-gray-700 text-center">
+                    <div class="text-xs text-gray-400 font-bold">總參賽</div>
                     <div id="stat-total" class="text-xs font-black text-indigo-400 mt-1">0 場</div>
                 </div>
-                <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700 text-center">
-                    <div class="text-[10px] text-slate-400 font-bold">累計對戰</div>
-                    <div id="stat-stages" class="text-xs font-black text-emerald-400 mt-1">0 輪</div>
+                <div class="bg-gray-800 p-2.5 rounded-xl border border-gray-700 text-center">
+                    <div class="text-xs text-gray-400 font-bold">累計對戰</div>
+                    <div id="stat-stages" class="text-xs font-black text-green-400 mt-1">0 輪</div>
                 </div>
-                <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700 text-center">
-                    <div class="text-[10px] text-slate-400 font-bold">累計花費</div>
-                    <div id="stat-expenses" class="text-xs font-black text-rose-400 mt-1">$0</div>
+                <div class="bg-gray-800 p-2.5 rounded-xl border border-gray-700 text-center">
+                    <div class="text-xs text-gray-400 font-bold">累計花費</div>
+                    <div id="stat-expenses" class="text-xs font-black text-red-400 mt-1">$0</div>
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-2">
-                <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700 text-center">
-                    <div class="text-[10px] text-slate-400 font-bold">🏆 個人最佳成績</div>
-                    <div id="stat-best" class="text-xs font-bold text-amber-400 mt-1 truncate">暫無數據</div>
+                <div class="bg-gray-800 p-2.5 rounded-xl border border-gray-700 text-center">
+                    <div class="text-xs text-gray-400 font-bold">🏆 個人最佳成績</div>
+                    <div id="stat-best" class="text-xs font-bold text-yellow-400 mt-1 truncate">暫無數據</div>
                 </div>
-                <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700 text-center">
-                    <div class="text-[10px] text-slate-400 font-bold">🔥 愛用陀螺 (實際出場)</div>
+                <div class="bg-gray-800 p-2.5 rounded-xl border border-gray-700 text-center">
+                    <div class="text-xs text-gray-400 font-bold">🔥 愛用陀螺 (實際出場)</div>
                     <div id="stat-top-beys" class="text-xs font-bold text-blue-400 mt-1 truncate">計算中...</div>
                 </div>
             </div>
 
-            <div class="bg-slate-800 p-3.5 rounded-xl border border-slate-700 shadow-md space-y-2">
+            <div class="bg-gray-800 p-3.5 rounded-xl border border-gray-700 shadow-md space-y-2">
                 <div class="flex justify-between items-center">
                     <h3 class="text-xs font-extrabold text-indigo-400 uppercase tracking-wider">📥 快速文字/CSV匯入基本資料</h3>
-                    <span class="text-[10px] text-slate-500">免逐欄手打</span>
+                    <span class="text-xs text-gray-500">免逐欄手打</span>
                 </div>
                 <div class="space-y-1.5">
-                    <textarea id="import-text" rows="2" placeholder="格式範例: 2026-07-09, 台北店賽, 64人, 150, 雙人對戰貼紙" class="w-full p-2 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-300 outline-none resize-none font-mono placeholder:text-slate-600"></textarea>
-                    <button type="button" id="btn-import-parse" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-200 text-[11px] font-bold py-1.5 rounded-lg transition border border-slate-600 shadow-sm">
+                    <textarea id="import-text" rows="2" placeholder="格式範例: 2026-07-09, 台北店賽, 64人, 150, 雙人對戰貼紙" class="w-full p-2 text-xs bg-gray-900 border border-gray-700 rounded-lg text-gray-300 outline-none resize-none font-mono placeholder:text-gray-600"></textarea>
+                    <button type="button" id="btn-import-parse" class="w-full bg-gray-700 hover:bg-gray-600 text-gray-200 text-xs font-bold py-1.5 rounded-lg transition border border-gray-600 shadow-sm">
                         ⚡ 解析並填入下方表單
                     </button>
                 </div>
             </div>
 
-            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-xl">
-                <h2 id="form-title" class="text-sm font-extrabold text-slate-200 mb-3 border-b border-slate-700 pb-2">📝 登錄新賽事</h2>
+            <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-xl">
+                <h2 id="form-title" class="text-sm font-extrabold text-gray-200 mb-3 border-b border-gray-700 pb-2">📝 登錄新賽事</h2>
                 <form id="match-form" class="space-y-3.5">
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-400 mb-1">比賽日期</label>
-                            <input type="date" id="date" required class="w-full p-2 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none h-9">
+                            <label class="block text-xs font-bold text-gray-400 mb-1">比賽日期</label>
+                            <input type="date" id="date" required class="w-full p-2 text-xs bg-gray-900 border border-gray-700 rounded-lg text-gray-200 outline-none h-9">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-400 mb-1">比賽名稱</label>
-                            <input type="text" id="tournament" placeholder="例如：金典 G3 店賽" required class="w-full p-2 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none h-9">
+                            <label class="block text-xs font-bold text-gray-400 mb-1">比賽名稱</label>
+                            <input type="text" id="tournament" placeholder="例如：金典 G3 店賽" required class="w-full p-2 text-xs bg-gray-900 border border-gray-700 rounded-lg text-gray-200 outline-none h-9">
                         </div>
                     </div>
                     <div class="grid grid-cols-3 gap-2">
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-400 mb-1">總人數</label>
-                            <input type="text" id="players" placeholder="64人" class="w-full p-2 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none h-9">
+                            <label class="block text-xs font-bold text-gray-400 mb-1">總人數</label>
+                            <input type="text" id="players" placeholder="64人" class="w-full p-2 text-xs bg-gray-900 border border-gray-700 rounded-lg text-gray-200 outline-none h-9">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-400 mb-1">報名費 ($)</label>
-                            <input type="number" id="fee" placeholder="0" class="w-full p-2 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none h-9">
+                            <label class="block text-xs font-bold text-gray-400 mb-1">報名費 ($)</label>
+                            <input type="number" id="fee" placeholder="0" class="w-full p-2 text-xs bg-gray-900 border border-gray-700 rounded-lg text-gray-200 outline-none h-9">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-400 mb-1">參賽獎品</label>
-                            <input type="text" id="prize" placeholder="基本包/貼紙" class="w-full p-2 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none h-9">
+                            <label class="block text-xs font-bold text-gray-400 mb-1">參賽獎品</label>
+                            <input type="text" id="prize" placeholder="基本包/貼紙" class="w-full p-2 text-xs bg-gray-900 border border-gray-700 rounded-lg text-gray-200 outline-none h-9">
                         </div>
                     </div>
 
-                    <div class="bg-blue-950/40 p-3 rounded-xl border border-blue-900/40 space-y-2">
+                    <div class="bg-blue-900 bg-opacity-20 p-3 rounded-xl border border-blue-900 border-opacity-40 space-y-2">
                         <div class="flex justify-between items-center">
-                            <span class="text-[11px] font-black text-blue-400 block">🛡️ 我方此戰登記陀螺庫 (基本三顆)</span>
-                            <button type="button" id="btn-add-my-bey" class="bg-blue-600/80 hover:bg-blue-500 text-white font-bold text-[10px] px-2 py-0.5 rounded transition">➕ 新增備用陀螺</button>
+                            <span class="text-xs font-black text-blue-400 block">🛡️ 我方此戰登記陀螺庫 (基本三顆)</span>
+                            <button type="button" id="btn-add-my-bey" class="bg-blue-600 bg-opacity-80 hover:bg-blue-500 text-white font-bold text-xs px-2 py-0.5 rounded transition">➕ 新增備用陀螺</button>
                         </div>
                         <div id="my-beys-container" class="grid grid-cols-3 gap-1.5">
-                            <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-center h-8" placeholder="我方陀螺 1" required>
-                            <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-center h-8" placeholder="我方陀螺 2" required>
-                            <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-center h-8" placeholder="我方陀螺 3" required>
+                            <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-gray-900 border border-gray-700 rounded-lg text-gray-200 text-center h-8" placeholder="我方陀螺 1" required>
+                            <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-gray-900 border border-gray-700 rounded-lg text-gray-200 text-center h-8" placeholder="我方陀螺 2" required>
+                            <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-gray-900 border border-gray-700 rounded-lg text-gray-200 text-center h-8" placeholder="我方陀螺 3" required>
                         </div>
                     </div>
 
                     <div id="stages-container" class="space-y-3"></div>
-                    <button type="button" id="btn-add-stage" class="w-full py-2 bg-slate-700 text-emerald-400 text-xs font-bold rounded-lg border border-dashed border-emerald-500/40 h-9">+ 新增下一輪賽事</button>
+                    <button type="button" id="btn-add-stage" class="w-full py-2 bg-gray-700 text-green-400 text-xs font-bold rounded-lg border border-dashed border-green-500 border-opacity-40 h-9">+ 新增下一輪賽事</button>
                     <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-lg text-xs h-11 tracking-wider">💾 儲存至雲端個人戰績庫</button>
                 </form>
             </div>
 
             <div class="space-y-2">
                 <div class="flex flex-col gap-1.5 sm:flex-row sm:justify-between sm:items-center">
-                    <h2 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">🔍 您的歷史戰績紀錄</h2>
-                    <input type="text" id="search-records" placeholder="搜尋比賽、對手、陀螺、日期或獎品" class="w-full sm:w-64 p-2 text-[11px] bg-slate-800 border border-slate-700 rounded-lg text-slate-200 outline-none h-8">
+                    <h2 class="text-xs font-extrabold text-gray-400 uppercase tracking-wider">🔍 您的歷史戰績紀錄</h2>
+                    <input type="text" id="search-records" placeholder="搜尋比賽、對手、陀螺、日期或獎品" class="w-full sm:w-64 p-2 text-xs bg-gray-800 border border-gray-700 rounded-lg text-gray-200 outline-none h-8">
                 </div>
                 <div id="records-list" class="space-y-2"></div>
             </div>
@@ -174,8 +174,8 @@
                 document.getElementById('main-app-section').classList.remove('hidden');
                 const userName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
                 document.getElementById('user-status-area').innerHTML = `
-                    <span class="text-xs font-bold text-emerald-400 block">👋 嗨，${userName}</span>
-                    <button id="btn-logout" class="text-[10px] text-slate-500 underline hover:text-rose-400">登出帳號</button>
+                    <span class="text-xs font-bold text-green-400 block">👋 嗨，${userName}</span>
+                    <button id="btn-logout" class="text-xs text-gray-500 underline hover:text-red-400">登出帳號</button>
                 `;
                 document.getElementById('btn-logout').addEventListener('click', async () => {
                     await gyroSupabase.auth.signOut();
@@ -185,7 +185,7 @@
                 currentUser = null;
                 document.getElementById('auth-section').classList.remove('hidden');
                 document.getElementById('main-app-section').classList.add('hidden');
-                document.getElementById('user-status-area').innerHTML = `<span class="text-xs font-bold text-rose-400">🔴 未登入</span>`;
+                document.getElementById('user-status-area').innerHTML = `<span class="text-xs font-bold text-red-400">🔴 未登入</span>`;
             }
         });
 
@@ -232,7 +232,7 @@
             const beyCount = container.querySelectorAll('.my-bey-input').length + 1;
             const input = document.createElement('input');
             input.type = 'text';
-            input.className = 'my-bey-input w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-center h-8';
+            input.className = 'my-bey-input w-full p-1.5 text-xs bg-gray-900 border border-gray-700 rounded-lg text-gray-200 text-center h-8';
             input.placeholder = `我方陀螺 ${beyCount}`;
             input.addEventListener('input', updateAllSelectOptions);
             container.appendChild(input);
@@ -262,36 +262,36 @@
             const container = document.getElementById('stages-container');
             const stageIndex = container.children.length;
             const block = document.createElement('div');
-            block.className = 'stage-block bg-slate-900/60 p-3 rounded-xl border border-slate-700/80 space-y-3';
+            block.className = 'stage-block bg-gray-900 bg-opacity-60 p-3 rounded-xl border border-gray-700 border-opacity-80 space-y-3';
             block.id = `stage-id-${Date.now()}-${stageIndex}`;
 
             block.innerHTML = `
-                <div class="flex justify-between items-center border-b border-slate-700 pb-1.5">
-                    <input type="text" class="stage-name-input bg-slate-800 border border-slate-600 rounded text-xs p-1 font-bold text-slate-100 h-7 w-2/5" placeholder="例如：預賽第一輪" required>
+                <div class="flex justify-between items-center border-b border-gray-700 pb-1.5">
+                    <input type="text" class="stage-name-input bg-gray-800 border border-gray-600 rounded text-xs p-1 font-bold text-gray-100 h-7 w-2/5" placeholder="例如：預賽第一輪" required>
                     <div class="text-xs font-black">
                         目前即時比分: <span class="score-summary-display text-indigo-400">0 - 0</span>
                     </div>
                 </div>
 
-                <div class="space-y-2 bg-slate-950/20 p-2 rounded-lg border border-slate-800">
+                <div class="space-y-2 bg-gray-950 bg-opacity-20 p-2 rounded-lg border border-gray-800">
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-400 mb-1">👤 對手名字</label>
-                        <input type="text" class="opp-name w-full bg-slate-800 border border-slate-700 p-1.5 text-xs rounded text-slate-200" placeholder="輸入對手名字" required>
+                        <label class="block text-xs font-bold text-gray-400 mb-1">👤 對手名字</label>
+                        <input type="text" class="opp-name w-full bg-gray-800 border border-gray-700 p-1.5 text-xs rounded text-gray-200" placeholder="輸入對手名字" required>
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-amber-400 mb-1">🕵️ 對手使用三陀螺陣容</label>
+                        <label class="block text-xs font-bold text-yellow-400 mb-1">🕵️ 對手使用三陀螺陣容</label>
                         <div class="grid grid-cols-3 gap-1.5">
-                            <input type="text" class="opp-b1 bg-slate-800 border border-slate-700 p-1.5 text-xs rounded text-center text-amber-300" placeholder="對方陀螺 1">
-                            <input type="text" class="opp-b2 bg-slate-800 border border-slate-700 p-1.5 text-xs rounded text-center text-amber-300" placeholder="對方陀螺 2">
-                            <input type="text" class="opp-b3 bg-slate-800 border border-slate-700 p-1.5 text-xs rounded text-center text-amber-300" placeholder="對方陀螺 3">
+                            <input type="text" class="opp-b1 bg-gray-800 border border-gray-700 p-1.5 text-xs rounded text-center text-yellow-300" placeholder="對方陀螺 1">
+                            <input type="text" class="opp-b2 bg-gray-800 border border-gray-700 p-1.5 text-xs rounded text-center text-yellow-300" placeholder="對方陀螺 2">
+                            <input type="text" class="opp-b3 bg-gray-800 border border-gray-700 p-1.5 text-xs rounded text-center text-yellow-300" placeholder="對方陀螺 3">
                         </div>
                     </div>
                 </div>
 
                 <div class="rounds-container space-y-1.5 pt-1">
-                    <div class="text-[10px] text-slate-400 font-bold flex justify-between items-center">
+                    <div class="text-xs text-gray-400 font-bold flex justify-between items-center">
                         <span>⚔️ 局數對戰與比分細節</span>
-                        <button type="button" class="btn-add-round-row bg-slate-700 hover:bg-slate-600 text-emerald-400 px-1.5 py-0.5 rounded text-[10px]">+ 加一局</button>
+                        <button type="button" class="btn-add-round-row bg-gray-700 hover:bg-gray-600 text-green-400 px-1.5 py-0.5 rounded text-xs">+ 加一局</button>
                     </div>
                     <div class="rounds-rows-list space-y-1.5"></div>
                 </div>
@@ -315,27 +315,27 @@
             const rowsList = stageBlock.querySelector('.rounds-rows-list');
             const roundIdx = rowsList.children.length + 1;
             const row = document.createElement('div');
-            row.className = 'round-row bg-slate-950/50 p-2 rounded-lg border border-slate-800 space-y-1.5';
+            row.className = 'round-row bg-gray-950 bg-opacity-50 p-2 rounded-lg border border-gray-800 space-y-1.5';
             
             row.innerHTML = `
                 <div class="grid grid-cols-12 gap-1 items-center">
-                    <div class="col-span-2 text-[10px] text-indigo-400 font-black text-center">局 ${roundIdx}</div>
+                    <div class="col-span-2 text-xs text-indigo-400 font-black text-center">局 ${roundIdx}</div>
                     <div class="col-span-4">
-                        <select class="select-my-bey-matchup w-full bg-slate-900 border border-slate-700 text-blue-300 text-[11px] p-1 rounded outline-none">
+                        <select class="select-my-bey-matchup w-full bg-gray-900 border border-gray-700 text-blue-300 text-xs p-1 rounded outline-none">
                             <option value="">-- 我方陀螺 --</option>
                         </select>
                     </div>
-                    <div class="col-span-2 text-[10px] text-slate-500 font-bold text-center">VS</div>
+                    <div class="col-span-2 text-xs text-gray-500 font-bold text-center">VS</div>
                     <div class="col-span-4">
-                        <select class="select-opp-bey-matchup w-full bg-slate-900 border border-slate-700 text-amber-300 text-[11px] p-1 rounded outline-none">
+                        <select class="select-opp-bey-matchup w-full bg-gray-900 border border-gray-700 text-yellow-300 text-xs p-1 rounded outline-none">
                             <option value="">-- 對方陀螺 --</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="flex items-center gap-1.5">
-                    <span class="text-[10px] text-slate-500 font-bold pl-2">比分細節:</span>
-                    <select class="round-finish-type flex-grow bg-slate-900 border border-slate-700 rounded text-[11px] p-1 text-slate-200 outline-none">
+                    <span class="text-xs text-gray-500 font-bold pl-2">比分細節:</span>
+                    <select class="round-finish-type flex-grow bg-gray-900 border border-gray-700 rounded text-xs p-1 text-gray-200 outline-none">
                         <option value="MY_SPIN">我方 轉停 (+1)</option>
                         <option value="MY_OVER">我方 擊飛 (+2)</option>
                         <option value="MY_BURST">我方 爆裂 (+2)</option>
@@ -381,7 +381,7 @@
             if (myBeys.includes(prevMyVal)) mySelect.value = prevMyVal;
 
             oppSelect.innerHTML = '<option value="">-- 對方陀螺 --</option>';
-            oppBeys.forEach(b => { oppSelect.innerHTML += `<option value="${b}">${b}</option>'; });
+            oppBeys.forEach(b => { oppSelect.innerHTML += `<option value="${b}">${b}</option>`; });
             if (oppBeys.includes(prevOppVal)) oppSelect.value = prevOppVal;
         }
 
@@ -489,9 +489,9 @@
                 document.getElementById('match-form').reset();
                 document.getElementById('import-text').value = ''; 
                 document.getElementById('my-beys-container').innerHTML = `
-                    <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-center h-8" placeholder="我方陀螺 1" required>
-                    <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-center h-8" placeholder="我方陀螺 2" required>
-                    <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-center h-8" placeholder="我方陀螺 3" required>
+                    <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-gray-900 border border-gray-700 rounded-lg text-gray-200 text-center h-8" placeholder="我方陀螺 1" required>
+                    <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-gray-900 border border-gray-700 rounded-lg text-gray-200 text-center h-8" placeholder="我方陀螺 2" required>
+                    <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-gray-900 border border-gray-700 rounded-lg text-gray-200 text-center h-8" placeholder="我方陀螺 3" required>
                 `;
                 document.querySelectorAll('.my-bey-input').forEach(input => input.addEventListener('input', updateAllSelectOptions));
                 document.getElementById('stages-container').innerHTML = '';
@@ -517,14 +517,14 @@
                         highestStageCount = m.stages.length;
                     }
                     m.stages.forEach(s => {
-                        if(s.stageName?.includes("冠軍") || s.stageName?.includes("決賽")) {
+                        if(s.stageName && (s.stageName.includes("冠軍") || s.stageName.includes("決賽"))) {
                             if(s.stageResult === 'WIN') bestTitle = "🏆 大賽冠軍";
                             else if(bestTitle !== "🏆 大賽冠軍") bestTitle = "🥈 大賽亞軍";
-                        } else if(s.stageName?.includes("四強") || s.stageName?.includes("準決賽")) {
+                        } else if(s.stageName && (s.stageName.includes("四強") || s.stageName.includes("準決賽"))) {
                             if(bestTitle !== "🏆 大賽冠軍" && bestTitle !== "🥈 大賽亞軍") bestTitle = "🥉 大賽季/殿軍";
                         }
                         
-                        s.rounds?.forEach(r => {
+                        s.rounds && s.rounds.forEach(r => {
                             if(r.myBey && r.myBey !== "未指定" && !r.myBey.startsWith("我方陀螺")) {
                                 actualBeyCounts[r.myBey] = (actualBeyCounts[r.myBey] || 0) + 1;
                             }
@@ -552,15 +552,15 @@
             const filteredMatches = myMatches.filter(m => {
                 if (!keyword) return true;
                 if (m.date && m.date.toLowerCase().includes(keyword)) return true;
-                if (m.tournament?.toLowerCase().includes(keyword)) return true;
+                if (m.tournament && m.tournament.toLowerCase().includes(keyword)) return true;
                 if (m.notes && m.notes.toLowerCase().includes(keyword)) return true; 
-                if (m.my_setups?.some(b => b.toLowerCase().includes(keyword))) return true;
+                if (m.my_setups && m.my_setups.some(b => b.toLowerCase().includes(keyword))) return true;
                 
-                if (m.stages?.some(s => {
-                    if (s.oppName?.toLowerCase().includes(keyword)) return true;
-                    if (s.stageName?.toLowerCase().includes(keyword)) return true;
-                    if (s.oppSetups?.some(ob => ob.toLowerCase().includes(keyword))) return true;
-                    if (s.rounds?.some(r => r.myBey?.toLowerCase().includes(keyword) || r.oppBey?.toLowerCase().includes(keyword))) return true;
+                if (m.stages && m.stages.some(s => {
+                    if (s.oppName && s.oppName.toLowerCase().includes(keyword)) return true;
+                    if (s.stageName && s.stageName.toLowerCase().includes(keyword)) return true;
+                    if (s.oppSetups && s.oppSetups.some(ob => ob.toLowerCase().includes(keyword))) return true;
+                    if (s.rounds && s.rounds.some(r => (r.myBey && r.myBey.toLowerCase().includes(keyword)) || (r.oppBey && r.oppBey.toLowerCase().includes(keyword)))) return true;
                     return false;
                 })) return true;
 
@@ -568,16 +568,16 @@
             });
 
             if(filteredMatches.length === 0) {
-                listContainer.innerHTML = `<div class="text-center p-4 text-xs text-slate-500">${myMatches.length === 0 ? '目前您的雲端庫還沒有戰績紀錄喔！' : '找不到符合關鍵字、日期或獎品的歷史紀錄。'}</div>`;
+                listContainer.innerHTML = `<div class="text-center p-4 text-xs text-gray-500">${myMatches.length === 0 ? '目前您的雲端庫還沒有戰績紀錄喔！' : '找不到符合關鍵字、日期或獎品的歷史紀錄。'}</div>`;
                 return;
             }
 
             filteredMatches.forEach(m => {
                 const card = document.createElement('div');
-                card.className = 'bg-slate-800 p-3 rounded-xl border border-slate-700 text-xs space-y-1.5';
+                card.className = 'bg-gray-800 p-3 rounded-xl border border-gray-700 text-xs space-y-1.5';
                 let stagesHtml = '';
                 
-                m.stages?.forEach(s => {
+                m.stages && m.stages.forEach(s => {
                     const oppBeysStr = s.oppSetups && s.oppSetups.length > 0 ? ` ［${s.oppSetups.join(' / ')}］` : '';
                     
                     let roundsDetailsHtml = '';
@@ -585,45 +585,45 @@
                         const pills = s.rounds.map((r, i) => {
                             const isMy = r.winner === 'MY';
                             return `
-                                <div class="text-[10px] bg-slate-950/40 border border-slate-700/60 p-1 rounded flex justify-between items-center w-full mt-0.5">
-                                    <span class="text-slate-400 font-mono">局${i+1}</span>
+                                <div class="text-xs bg-gray-950 bg-opacity-40 border border-gray-700 border-opacity-60 p-1 rounded flex justify-between items-center w-full mt-0.5">
+                                    <span class="text-gray-400 font-mono">局${i+1}</span>
                                     <span class="text-blue-300 font-medium truncate max-w-[120px]">${r.myBey}</span>
-                                    <span class="text-slate-500 text-[9px]">vs</span>
-                                    <span class="text-amber-300 font-medium truncate max-w-[120px]">${r.oppBey}</span>
-                                    <span class="ml-2 font-bold ${isMy ? 'text-indigo-400':'text-rose-400'}">${isMy?'我':'對方'}${r.actionText}+${r.points}</span>
+                                    <span class="text-gray-500 text-xs">vs</span>
+                                    <span class="text-yellow-300 font-medium truncate max-w-[120px]">${r.oppBey}</span>
+                                    <span class="ml-2 font-bold ${isMy ? 'text-indigo-400':'text-red-400'}">${isMy?'我':'對方'}${r.actionText}+${r.points}</span>
                                 </div>
                             `;
                         }).join('');
-                        roundsDetailsHtml = `<div class="space-y-0.5 pt-1 border-t border-slate-800/60">${pills}</div>`;
+                        roundsDetailsHtml = `<div class="space-y-0.5 pt-1 border-t border-gray-800 border-opacity-60">${pills}</div>`;
                     }
 
                     stagesHtml += `
-                        <div class="bg-slate-900/50 p-2 rounded border border-slate-700/50 space-y-1">
+                        <div class="bg-gray-900 bg-opacity-50 p-2 rounded border border-gray-700 border-opacity-50 space-y-1">
                             <div class="flex justify-between items-center font-bold">
-                                <span class="text-slate-300">${s.stageName} <span class="text-slate-500 font-normal">vs</span> ${s.oppName}</span>
-                                <span class="px-1.5 py-0.5 rounded text-[10px] ${s.stageResult === 'WIN' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800':'bg-rose-950 text-rose-400 border border-rose-800'}">
+                                <span class="text-gray-300">${s.stageName} <span class="text-gray-500 font-normal">vs</span> ${s.oppName}</span>
+                                <span class="px-1.5 py-0.5 rounded text-xs ${s.stageResult === 'WIN' ? 'bg-green-950 text-green-400 border border-green-800':'bg-red-950 text-red-400 border border-red-800'}">
                                     ${s.score || ''} ${s.stageResult === 'WIN' ? '晉級':'淘汰'}
                                 </span>
                             </div>
-                            ${oppBeysStr ? `<div class="text-[10px] text-amber-500/70 font-medium">對方陣容:${oppBeysStr}</div>` : ''}
+                            ${oppBeysStr ? `<div class="text-xs text-yellow-500 text-opacity-70 font-medium">對方陣容:${oppBeysStr}</div>` : ''}
                             ${roundsDetailsHtml}
                         </div>
                     `;
                 });
 
-                const prizeDisplay = m.notes ? `<span class="bg-slate-700 text-amber-300 text-[10px] px-1.5 py-0.5 rounded">🎁 獎品: ${m.notes}</span>` : '';
+                const prizeDisplay = m.notes ? `<span class="bg-gray-700 text-yellow-300 text-xs px-1.5 py-0.5 rounded">🎁 獎品: ${m.notes}</span>` : '';
 
                 card.innerHTML = `
-                    <div class="flex justify-between items-center text-[10px] text-slate-400">
+                    <div class="flex justify-between items-center text-xs text-gray-400">
                         <span>📅 ${m.date} | 👥 ${m.players || '未知'}</span>
                         <div class="flex items-center gap-1.5">
                             ${prizeDisplay}
                             <span class="text-indigo-400 font-bold">$${m.fee}</span>
                         </div>
                     </div>
-                    <h4 class="font-black text-slate-200 text-sm">${m.tournament}</h4>
-                    <div class="text-slate-400 text-[11px]">我方登記陣容: <span class="text-blue-400">${m.my_setups?.join(', ')}</span></div>
-                    <div class="space-y-1.5 pt-1 border-t border-slate-700/40">${stagesHtml}</div>
+                    <h4 class="font-black text-gray-200 text-sm">${m.tournament}</h4>
+                    <div class="text-gray-400 text-xs">我方登記陣容: <span class="text-blue-400">${m.my_setups ? m.my_setups.join(', ') : ''}</span></div>
+                    <div class="space-y-1.5 pt-1 border-t border-gray-700 border-opacity-40">${stagesHtml}</div>
                 `;
                 listContainer.appendChild(card);
             });
