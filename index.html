@@ -3,20 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>戰鬥陀螺戰績社群網</title>
+    <title>戰鬥陀螺大賽級戰績社群網</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         input, select, button { -webkit-tap-highlight-color: transparent; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
-        
-        /* 🚨 強制點擊穿透與超高層級防禦 */
-        .force-click {
-            position: relative !important;
-            z-index: 9999 !important;
-            pointer-events: auto !important;
-        }
     </style>
 </head>
 <body class="bg-slate-900 min-h-screen text-slate-100 font-sans antialiased pb-12">
@@ -25,7 +18,7 @@
         <header class="mb-4 border-b border-slate-700 pb-3 flex flex-col gap-2">
             <div class="flex justify-between items-center">
                 <div>
-                    <h1 class="text-xl font-black text-indigo-400 tracking-wider">🌪️ 陀螺戰績社群網</h1>
+                    <h1 class="text-xl font-black text-indigo-400 tracking-wider">🌪️ 陀螺大賽戰績社群網</h1>
                     <p class="text-slate-400 text-xs mt-0.5">多用戶雲端版 • 支援 Google 一鍵登入</p>
                 </div>
                 <div id="user-status-area" class="text-right"></div>
@@ -34,11 +27,11 @@
 
         <div id="auth-section" class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl space-y-4">
             <div class="text-center space-y-1">
-                <h3 class="text-md font-bold text-slate-200">🏆 歡迎來到陀螺選手戰績庫</h3>
+                <h3 class="text-md font-bold text-slate-200">🏆 歡迎來到全台陀螺選手戰績庫</h3>
                 <p class="text-xs text-slate-400">註冊專屬帳號，即可擁有個人化大數據分析與隨身雲端筆記。</p>
             </div>
             
-            <button id="btn-google" class="force-click w-full bg-white hover:bg-slate-100 text-slate-900 font-bold text-xs py-2.5 rounded-lg transition h-11 flex items-center justify-center gap-2 border-2 border-rose-500 shadow-sm">
+            <button id="btn-google" class="w-full bg-white hover:bg-slate-100 text-slate-900 font-bold text-xs py-2.5 rounded-lg transition h-11 flex items-center justify-center gap-2 border border-slate-300 shadow-sm">
                 <svg class="w-4 h-4" viewBox="0 0 24 24">
                     <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.866-3.577-7.866-8s3.536-8 7.866-8c2.46 0 4.105 1.025 5.047 1.926l3.327-3.2A12.986 12.986 0 0 0 12.24 0c-7.18 0-13 5.82-13 13s5.82 13 13 13c7.5 0 12.48-5.26 12.48-12.69 0-.85-.09-1.5-.2-2.025H12.24z"/>
                 </svg>
@@ -52,14 +45,14 @@
             </div>
 
             <div class="space-y-2">
-                <input type="email" id="auth-email" placeholder="輸入電子信箱 Email" class="force-click w-full p-2.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none h-10">
-                <input type="password" id="auth-password" placeholder="密碼 (至少 6 位數)" class="force-click w-full p-2.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none h-10">
+                <input type="email" id="auth-email" placeholder="輸入電子信箱 Email" class="w-full p-2.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none h-10">
+                <input type="password" id="auth-password" placeholder="密碼 (至少 6 位數)" class="w-full p-2.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none h-10">
                 
                 <div class="grid grid-cols-2 gap-2 pt-1">
-                    <button id="btn-login" class="force-click bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2.5 rounded-lg transition h-10 border-2 border-blue-400">
+                    <button id="btn-login" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2.5 rounded-lg transition h-10">
                         🔑 登入帳號
                     </button>
-                    <button id="btn-signup" class="force-click bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold py-2.5 rounded-lg transition h-10 border-2 border-emerald-400">
+                    <button id="btn-signup" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold py-2.5 rounded-lg transition h-10 border border-slate-600">
                         📝 註冊新帳號
                     </button>
                 </div>
@@ -126,7 +119,7 @@
 
     <script>
         const url_config = "https://erfhyiptjwodutdwxitb.supabase.co";
-        const key_config = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyZmh5aXB0andvZHV0ZHd4aXRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MTE0MTUsImV4cCI6MjA5OTE4NzQxNX0.8xT-uHvCyw61JZ4qDihz5j2F0sd6ROWpr_1kt2ELgEc";
+        const key_config = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyZmh5aXB0andvZHV0ZHd4aXRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MTE0MTUsImV4cCI6MjA5OTA4NzQxNX0.8xT-uHvCyw61JZ4qDihz5j2F0sd6ROWpr_1kt2ELgEc";
 
         const gyroSupabase = window.supabase.createClient(url_config, key_config);
         let currentUser = null;
@@ -140,8 +133,8 @@
                 document.getElementById('main-app-section').classList.remove('hidden');
                 const userName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
                 document.getElementById('user-status-area').innerHTML = `
-                    <span class="text-xs font-bold text-emerald-400 block force-click">👋 嗨，${userName}</span>
-                    <button id="btn-logout" class="force-click text-[10px] text-slate-500 underline hover:text-rose-400">登出帳號</button>
+                    <span class="text-xs font-bold text-emerald-400 block">👋 嗨，${userName}</span>
+                    <button id="btn-logout" class="text-[10px] text-slate-500 underline hover:text-rose-400">登出帳號</button>
                 `;
                 
                 document.getElementById('btn-logout').addEventListener('click', async () => {
