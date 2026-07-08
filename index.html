@@ -163,7 +163,7 @@
             <div class="space-y-2">
                 <div class="flex flex-col gap-1.5 sm:flex-row sm:justify-between sm:items-center">
                     <h2 class="text-xs font-extrabold text-gray-400 uppercase tracking-wider">🔍 您的歷史戰績紀錄</h2>
-                    <input type="text" id="search-records" placeholder="搜尋比賽、對手、陀螺、日期或獎品" class="w-full sm:w-64 p-2 text-xs bg-gray-800 border border-gray-700 rounded-lg text-gray-200 outline-none h-8">
+                    <input type="text" id="search-records" placeholder="搜尋比賽、對手、陀螺、日期或關鍵字" class="w-full sm:w-64 p-2 text-xs bg-gray-800 border border-gray-700 rounded-lg text-gray-200 outline-none h-8">
                 </div>
                 <div id="records-list" class="space-y-2"></div>
             </div>
@@ -218,7 +218,7 @@
             if (error) alert('登入失敗: ' + error.message);
         });
 
-        // 檔案批量匯入核心解析邏輯
+        // 檔案批量匯入核心解析邏輯（已修正，不發送 notes 欄位避免架構衝突）
         document.getElementById('upload-json-file').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -232,7 +232,7 @@
                         throw new Error('戰績備份格式錯誤，最外層必須是陣列 []');
                     }
 
-                    // 強制綁定當前登入使用者的 user_id
+                    // 強制綁定當前登入使用者的 user_id，並移除 notes 欄位
                     const finalDataToInsert = rawData.map(match => ({
                         user_id: currentUser.id,
                         date: match.date || new Date().toISOString().split('T')[0],
@@ -240,8 +240,7 @@
                         players: String(match.players || ''),
                         fee: Number(match.fee) || 0,
                         my_setups: match.my_setups || [],
-                        stages: match.stages || [],
-                        notes: match.notes || ''
+                        stages: match.stages || []
                     }));
 
                     // 寫入資料庫
@@ -523,8 +522,7 @@
                 });
             });
 
-            const prizeText = document.getElementById('prize').value.trim();
-
+            // 如果未來要將獎品欄位傳給其他欄位可以在此調整，目前因 matches_v2 無 notes 欄位故直接儲存其餘資料
             const newMatch = {
                 user_id: currentUser.id,
                 date: document.getElementById('date').value,
@@ -532,8 +530,7 @@
                 players: document.getElementById('players').value,
                 fee: Number(document.getElementById('fee').value) || 0,
                 my_setups: mySetupsData,
-                stages: stagesData,
-                notes: prizeText 
+                stages: stagesData
             };
 
             const { error } = await gyroSupabase.from('matches_v2').insert([newMatch]);
@@ -608,7 +605,6 @@
                 if (!keyword) return true;
                 if (m.date && m.date.toLowerCase().includes(keyword)) return true;
                 if (m.tournament && m.tournament.toLowerCase().includes(keyword)) return true;
-                if (m.notes && m.notes.toLowerCase().includes(keyword)) return true; 
                 if (m.my_setups && m.my_setups.some(b => b.toLowerCase().includes(keyword))) return true;
                 
                 if (m.stages && m.stages.some(s => {
@@ -623,7 +619,7 @@
             });
 
             if(filteredMatches.length === 0) {
-                listContainer.innerHTML = `<div class="text-center p-4 text-xs text-gray-500">${myMatches.length === 0 ? '目前您的雲端庫還沒有戰績紀錄喔！' : '找不到符合關鍵字、日期或獎品的歷史紀錄。'}</div>`;
+                listContainer.innerHTML = `<div class="text-center p-4 text-xs text-gray-500">${myMatches.length === 0 ? '目前您的雲端庫還沒有戰績紀錄喔！' : '找不到符合關鍵字的歷史紀錄。'}</div>`;
                 return;
             }
 
@@ -666,13 +662,10 @@
                     `;
                 });
 
-                const prizeDisplay = m.notes ? `<span class="bg-gray-700 text-yellow-300 text-xs px-1.5 py-0.5 rounded">🎁 獎品: ${m.notes}</span>` : '';
-
                 card.innerHTML = `
                     <div class="flex justify-between items-center text-xs text-gray-400">
                         <span>📅 ${m.date} | 👥 ${m.players || '未知'}</span>
                         <div class="flex items-center gap-1.5">
-                            ${prizeDisplay}
                             <span class="text-indigo-400 font-bold">$${m.fee}</span>
                         </div>
                     </div>
