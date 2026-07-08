@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>戰鬥陀螺戰績社群網</title>
+    <title>戰鬥陀螺比分紀錄</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -18,7 +18,7 @@
         <header class="mb-4 border-b border-slate-700 pb-3 flex flex-col gap-2">
             <div class="flex justify-between items-center">
                 <div>
-                    <h1 class="text-xl font-black text-indigo-400 tracking-wider">🌪️ 陀螺戰績社群網</h1>
+                    <h1 class="text-xl font-black text-indigo-400 tracking-wider">戰鬥陀螺比分紀錄</h1>
                 </div>
                 <div id="user-status-area" class="text-right"></div>
             </div>
@@ -26,7 +26,7 @@
 
         <div id="auth-section" class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl space-y-4">
             <div class="text-center space-y-1">
-                <h3 class="text-md font-bold text-slate-200">🏆 歡迎來到陀螺選手戰績庫</h3>
+                <h3 class="text-md font-bold text-slate-200">🏆 戰鬥陀螺比分紀錄</h3>
                 <p class="text-xs text-slate-400">註冊專屬帳號，即可擁有個人化大數據分析與隨身雲端筆記。</p>
             </div>
             
@@ -113,7 +113,10 @@
             </div>
 
             <div class="space-y-2">
-                <h2 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">🔍 您的歷史戰績紀錄</h2>
+                <div class="flex flex-col gap-1.5 sm:flex-row sm:justify-between sm:items-center">
+                    <h2 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">🔍 您的歷史戰績紀錄</h2>
+                    <input type="text" id="search-records" placeholder="搜尋比賽、對手、陀螺或日期 (如: 2026-07)" class="w-full sm:w-64 p-2 text-[11px] bg-slate-800 border border-slate-700 rounded-lg text-slate-200 outline-none h-8">
+                </div>
                 <div id="records-list" class="space-y-2"></div>
             </div>
         </div>
@@ -186,6 +189,10 @@
             createStageBlock();
         });
 
+        document.getElementById('search-records').addEventListener('input', () => {
+            renderDashboardAndList();
+        });
+
         async function fetchUserMatches() {
             const { data, error } = await gyroSupabase.from('matches_v2').select('*').order('date', { ascending: false });
             if (!error && data) {
@@ -217,9 +224,9 @@
                     <div>
                         <label class="block text-[11px] font-bold text-amber-400 mb-1">🕵️ 對手使用三陀螺陣容</label>
                         <div class="grid grid-cols-3 gap-1.5">
-                            <input type="text" class="opp-b1 bg-slate-800 border border-slate-700 p-1.5 text-xs rounded text-center text-amber-300" placeholder="敵陀螺 1">
-                            <input type="text" class="opp-b2 bg-slate-800 border border-slate-700 p-1.5 text-xs rounded text-center text-amber-300" placeholder="敵陀螺 2">
-                            <input type="text" class="opp-b3 bg-slate-800 border border-slate-700 p-1.5 text-xs rounded text-center text-amber-300" placeholder="敵陀螺 3">
+                            <input type="text" class="opp-b1 bg-slate-800 border border-slate-700 p-1.5 text-xs rounded text-center text-amber-300" placeholder="對方陀螺 1">
+                            <input type="text" class="opp-b2 bg-slate-800 border border-slate-700 p-1.5 text-xs rounded text-center text-amber-300" placeholder="對方陀螺 2">
+                            <input type="text" class="opp-b3 bg-slate-800 border border-slate-700 p-1.5 text-xs rounded text-center text-amber-300" placeholder="對方陀螺 3">
                         </div>
                     </div>
                 </div>
@@ -247,7 +254,6 @@
             addRoundRow(block);
         }
 
-        // 🛠️ 核心修改：更新下拉選單的戰術得分項目
         function addRoundRow(stageBlock) {
             const rowsList = stageBlock.querySelector('.rounds-rows-list');
             const roundIdx = rowsList.children.length + 1;
@@ -265,7 +271,7 @@
                     <div class="col-span-2 text-[10px] text-slate-500 font-bold text-center">VS</div>
                     <div class="col-span-4">
                         <select class="select-opp-bey-matchup w-full bg-slate-900 border border-slate-700 text-amber-300 text-[11px] p-1 rounded outline-none">
-                            <option value="">-- 對手陀螺 --</option>
+                            <option value="">-- 對方陀螺 --</option>
                         </select>
                     </div>
                 </div>
@@ -273,14 +279,14 @@
                 <div class="flex items-center gap-1.5">
                     <span class="text-[10px] text-slate-500 font-bold pl-2">比分細節:</span>
                     <select class="round-finish-type flex-grow bg-slate-900 border border-slate-700 rounded text-[11px] p-1 text-slate-200 outline-none">
-                        <option value="MY_SPIN">我方 轉停/持久 (+1)</option>
-                        <option value="MY_OVER">我方 擊飛/動能 (+2)</option>
-                        <option value="MY_BURST">我方 爆裂終結 (+2)</option>
-                        <option value="MY_XTREME">我方 極限終結 (+3)</option>
-                        <option value="OPP_SPIN">對手 轉停/持久 (+1)</option>
-                        <option value="OPP_OVER">對手 擊飛/動能 (+2)</option>
-                        <option value="OPP_BURST">對手 爆裂終結 (+2)</option>
-                        <option value="OPP_XTREME">對手 極限終結 (+3)</option>
+                        <option value="MY_SPIN">我方 轉停 (+1)</option>
+                        <option value="MY_OVER">我方 擊飛 (+2)</option>
+                        <option value="MY_BURST">我方 爆裂 (+2)</option>
+                        <option value="MY_XTREME">我方 極限 (+3)</option>
+                        <option value="OPP_SPIN">對手 轉停 (+1)</option>
+                        <option value="OPP_OVER">對手 擊飛 (+2)</option>
+                        <option value="OPP_BURST">對手 爆裂 (+2)</option>
+                        <option value="OPP_XTREME">對手 極限 (+3)</option>
                     </select>
                 </div>
             `;
@@ -292,14 +298,6 @@
 
             updateSelectOptionsForElement(stageBlock, row);
             calculateStageScore(stageBlock);
-        }
-
-        function updateAllSelectOptions() {
-            document.querySelectorAll('.stage-block').forEach(stageBlock => {
-                stageBlock.querySelectorAll('.round-row').forEach(row => {
-                    updateSelectOptionsForElement(stageBlock, row);
-                });
-            });
         }
 
         function updateSelectOptionsForElement(stageBlock, row) {
@@ -316,21 +314,28 @@
             });
 
             const oppBeys = [];
-            const ob1 = stageBlock.querySelector('.opp-b1').value.trim() || "敵陀螺 1";
-            const ob2 = stageBlock.querySelector('.opp-b2').value.trim() || "敵陀螺 2";
-            const ob3 = stageBlock.querySelector('.opp-b3').value.trim() || "敵陀螺 3";
+            const ob1 = stageBlock.querySelector('.opp-b1').value.trim() || "對方陀螺 1";
+            const ob2 = stageBlock.querySelector('.opp-b2').value.trim() || "對方陀螺 2";
+            const ob3 = stageBlock.querySelector('.opp-b3').value.trim() || "對方陀螺 3";
             oppBeys.push(ob1, ob2, ob3);
 
             mySelect.innerHTML = '<option value="">-- 我方陀螺 --</option>';
             myBeys.forEach(b => { mySelect.innerHTML += `<option value="${b}">${b}</option>`; });
             if (myBeys.includes(prevMyVal)) mySelect.value = prevMyVal;
 
-            oppSelect.innerHTML = '<option value="">-- 對手陀螺 --</option>';
+            oppSelect.innerHTML = '<option value="">-- 對方陀螺 --</option>';
             oppBeys.forEach(b => { oppSelect.innerHTML += `<option value="${b}">${b}</option>`; });
             if (oppBeys.includes(prevOppVal)) oppSelect.value = prevOppVal;
         }
 
-        // 🛠️ 核心修改：重新調整計分加總的邏輯
+        function updateAllSelectOptions() {
+            document.querySelectorAll('.stage-block').forEach(stageBlock => {
+                stageBlock.querySelectorAll('.round-row').forEach(row => {
+                    updateSelectOptionsForElement(stageBlock, row);
+                });
+            });
+        }
+
         function calculateStageScore(stageBlock) {
             let myTotal = 0;
             let oppTotal = 0;
@@ -371,7 +376,6 @@
                     let winner = 'MY';
                     let actionText = '';
 
-                    // 依最新指定計分
                     if (val === 'MY_SPIN') { myTotal += 1; points = 1; winner = 'MY'; actionText = '轉停'; }
                     if (val === 'MY_OVER') { myTotal += 2; points = 2; winner = 'MY'; actionText = '擊飛'; }
                     if (val === 'MY_BURST') { myTotal += 2; points = 2; winner = 'MY'; actionText = '爆裂'; }
@@ -421,7 +425,7 @@
             if (error) {
                 alert('上傳雲端失敗: ' + error.message);
             } else {
-                alert('全新計分規則戰績已同步成功！');
+                alert('更新成功，戰績已同步！');
                 document.getElementById('match-form').reset();
                 document.getElementById('my-beys-container').innerHTML = `
                     <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-center h-8" placeholder="我方陀螺 1" required>
@@ -446,12 +450,41 @@
 
             const listContainer = document.getElementById('records-list');
             listContainer.innerHTML = '';
-            if(myMatches.length === 0) {
-                listContainer.innerHTML = `<div class="text-center p-4 text-xs text-slate-500">目前您的雲端庫還沒有戰績紀錄喔！</div>`;
+            
+            // 獲取搜尋關鍵字
+            const keyword = document.getElementById('search-records').value.trim().toLowerCase();
+
+            // 進行戰績篩選 (新增支援日期欄位搜尋)
+            const filteredMatches = myMatches.filter(m => {
+                if (!keyword) return true;
+                
+                // 1. 檢查比賽日期 (支援各種日期格式包含年、月、日的部分匹配)
+                if (m.date && m.date.toLowerCase().includes(keyword)) return true;
+
+                // 2. 檢查比賽名稱
+                if (m.tournament?.toLowerCase().includes(keyword)) return true;
+                
+                // 3. 檢查我方陣容
+                if (m.my_setups?.some(b => b.toLowerCase().includes(keyword))) return true;
+                
+                // 4. 檢查各輪對手名字與陣容、局對戰資訊
+                if (m.stages?.some(s => {
+                    if (s.oppName?.toLowerCase().includes(keyword)) return true;
+                    if (s.stageName?.toLowerCase().includes(keyword)) return true;
+                    if (s.oppSetups?.some(ob => ob.toLowerCase().includes(keyword))) return true;
+                    if (s.rounds?.some(r => r.myBey?.toLowerCase().includes(keyword) || r.oppBey?.toLowerCase().includes(keyword))) return true;
+                    return false;
+                })) return true;
+
+                return false;
+            });
+
+            if(filteredMatches.length === 0) {
+                listContainer.innerHTML = `<div class="text-center p-4 text-xs text-slate-500">${myMatches.length === 0 ? '目前您的雲端庫還沒有戰績紀錄喔！' : '找不到符合關鍵字或日期的歷史紀錄。'}</div>`;
                 return;
             }
 
-            myMatches.forEach(m => {
+            filteredMatches.forEach(m => {
                 const card = document.createElement('div');
                 card.className = 'bg-slate-800 p-3 rounded-xl border border-slate-700 text-xs space-y-1.5';
                 let stagesHtml = '';
@@ -469,11 +502,11 @@
                                     <span class="text-blue-300 font-medium truncate max-w-[120px]">${r.myBey}</span>
                                     <span class="text-slate-500 text-[9px]">vs</span>
                                     <span class="text-amber-300 font-medium truncate max-w-[120px]">${r.oppBey}</span>
-                                    <span class="ml-2 font-bold ${isMy ? 'text-indigo-400':'text-rose-400'}">${isMy?'我':'敵'}${r.actionText}+${r.points}</span>
+                                    <span class="ml-2 font-bold ${isMy ? 'text-indigo-400':'text-rose-400'}">${isMy?'我':'對方'}${r.actionText}+${r.points}</span>
                                 </div>
                             `;
                         }).join('');
-                        roundsDetailsHtml = `<div class="space-y-0.5 pt-1 border-t border-slate-800/60">${roundsDetailsHtml}</div>`;
+                        roundsDetailsHtml = `<div class="space-y-0.5 pt-1 border-t border-slate-800/60">${pills}</div>`;
                     }
 
                     stagesHtml += `
@@ -484,7 +517,7 @@
                                     ${s.score || ''} ${s.stageResult === 'WIN' ? '晉級':'淘汰'}
                                 </span>
                             </div>
-                            ${oppBeysStr ? `<div class="text-[10px] text-amber-500/70 font-medium">敵方陣容:${oppBeysStr}</div>` : ''}
+                            ${oppBeysStr ? `<div class="text-[10px] text-amber-500/70 font-medium">對方陣容:${oppBeysStr}</div>` : ''}
                             ${roundsDetailsHtml}
                         </div>
                     `;
