@@ -96,12 +96,13 @@
 
                     <div class="bg-blue-950/40 p-3 rounded-xl border border-blue-900/40 space-y-2">
                         <div class="flex justify-between items-center">
-                            <span class="text-[11px] font-black text-blue-400 block">🛡️ 我方此戰登記陀螺庫</span>
-                            <button type="button" id="btn-add-my-bey" class="bg-blue-600/80 hover:bg-blue-500 text-white font-bold text-[10px] px-2 py-0.5 rounded transition">➕ 新增陀螺</button>
+                            <span class="text-[11px] font-black text-blue-400 block">🛡️ 我方此戰登記陀螺庫 (基本三顆)</span>
+                            <button type="button" id="btn-add-my-bey" class="bg-blue-600/80 hover:bg-blue-500 text-white font-bold text-[10px] px-2 py-0.5 rounded transition">➕ 新增備用陀螺</button>
                         </div>
-                        <div id="my-beys-container" class="grid grid-cols-2 gap-1.5">
+                        <div id="my-beys-container" class="grid grid-cols-3 gap-1.5">
                             <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-center h-8" placeholder="我方陀螺 1" required>
-                            <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-center h-8" placeholder="我方陀螺 2">
+                            <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-center h-8" placeholder="我方陀螺 2" required>
+                            <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-center h-8" placeholder="我方陀螺 3" required>
                         </div>
                     </div>
 
@@ -126,7 +127,6 @@
         let currentUser = null;
         let myMatches = [];
 
-        // 監聽登入狀態
         gyroSupabase.auth.onAuthStateChange((event, session) => {
             if (session) {
                 currentUser = session.user;
@@ -149,7 +149,6 @@
             }
         });
 
-        // 登入相關事件
         document.getElementById('btn-google').addEventListener('click', async () => {
             await gyroSupabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
         });
@@ -175,7 +174,12 @@
             input.type = 'text';
             input.className = 'my-bey-input w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-center h-8';
             input.placeholder = `我方陀螺 ${beyCount}`;
+            input.addEventListener('input', updateAllSelectOptions);
             container.appendChild(input);
+        });
+
+        document.querySelectorAll('.my-bey-input').forEach(input => {
+            input.addEventListener('input', updateAllSelectOptions);
         });
 
         document.getElementById('btn-add-stage').addEventListener('click', () => {
@@ -190,15 +194,12 @@
             }
         }
 
-        // 🛠️ 核心修改：建立包含招式與小局紀錄的每輪賽事區塊
         function createStageBlock() {
             const container = document.getElementById('stages-container');
             const stageIndex = container.children.length;
             const block = document.createElement('div');
-            block.className = 'stage-block bg-slate-900/60 p-3 rounded-xl border border-slate-700/80 space-y-2.5';
-            
-            // 給予每一輪獨立的 ID 用於內部局數操作
-            block.id = `stage-idx-${stageIndex}`;
+            block.className = 'stage-block bg-slate-900/60 p-3 rounded-xl border border-slate-700/80 space-y-3';
+            block.id = `stage-id-${Date.now()}-${stageIndex}`;
 
             block.innerHTML = `
                 <div class="flex justify-between items-center border-b border-slate-700 pb-1.5">
@@ -208,71 +209,128 @@
                     </div>
                 </div>
 
-                <div class="space-y-1.5">
-                    <div class="text-[11px] font-bold text-slate-400 flex justify-between">
-                        <span>👤 對手名字</span>
-                        <span class="text-amber-400">🕵️ 對手戰用三陀螺陣容</span>
+                <div class="space-y-2 bg-slate-950/20 p-2 rounded-lg border border-slate-800">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">👤 對手名字</label>
+                        <input type="text" class="opp-name w-full bg-slate-800 border border-slate-700 p-1.5 text-xs rounded text-slate-200" placeholder="輸入對手名字" required>
                     </div>
-                    <div class="grid grid-cols-4 gap-1">
-                        <input type="text" class="opp-name bg-slate-800 border border-slate-700 p-1.5 text-xs rounded text-slate-200" placeholder="名字" required>
-                        <input type="text" class="opp-b1 bg-slate-800 border border-slate-700 p-1.5 text-xs rounded text-center text-amber-300" placeholder="陀螺 1">
-                        <input type="text" class="opp-b2 bg-slate-800 border border-slate-700 p-1.5 text-xs rounded text-center text-amber-300" placeholder="陀螺 2">
-                        <input type="text" class="opp-b3 bg-slate-800 border border-slate-700 p-1.5 text-xs rounded text-center text-amber-300" placeholder="陀螺 3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-amber-400 mb-1">🕵️ 對手使用三陀螺陣容</label>
+                        <div class="grid grid-cols-3 gap-1.5">
+                            <input type="text" class="opp-b1 bg-slate-800 border border-slate-700 p-1.5 text-xs rounded text-center text-amber-300" placeholder="敵陀螺 1">
+                            <input type="text" class="opp-b2 bg-slate-800 border border-slate-700 p-1.5 text-xs rounded text-center text-amber-300" placeholder="敵陀螺 2">
+                            <input type="text" class="opp-b3 bg-slate-800 border border-slate-700 p-1.5 text-xs rounded text-center text-amber-300" placeholder="敵陀螺 3">
+                        </div>
                     </div>
                 </div>
 
                 <div class="rounds-container space-y-1.5 pt-1">
                     <div class="text-[10px] text-slate-400 font-bold flex justify-between items-center">
-                        <span>⚔️ 局數對戰招式細節</span>
+                        <span>⚔️ 局數對戰與比分細節</span>
                         <button type="button" class="btn-add-round-row bg-slate-700 hover:bg-slate-600 text-emerald-400 px-1.5 py-0.5 rounded text-[10px]">+ 加一局</button>
                     </div>
-                    <div class="rounds-rows-list space-y-1"></div>
+                    <div class="rounds-rows-list space-y-1.5"></div>
                 </div>
             `;
             container.appendChild(block);
             
             if(stageIndex === 0) block.querySelector('.stage-name-input').value = "預賽第一輪";
 
-            // 綁定「加一局」按鈕點擊事件
+            block.querySelectorAll('.opp-b1, .opp-b2, .opp-b3').forEach(input => {
+                input.addEventListener('input', updateAllSelectOptions);
+            });
+
             block.querySelector('.btn-add-round-row').addEventListener('click', () => {
                 addRoundRow(block);
             });
 
-            // 預設先自動加上第一局
             addRoundRow(block);
         }
 
-        // 動態新增一小局的招式下拉選單
+        // 🛠️ 核心修改：更新下拉選單的戰術得分項目
         function addRoundRow(stageBlock) {
             const rowsList = stageBlock.querySelector('.rounds-rows-list');
             const roundIdx = rowsList.children.length + 1;
             const row = document.createElement('div');
-            row.className = 'round-row grid grid-cols-12 gap-1 items-center bg-slate-950/40 p-1 rounded border border-slate-800';
+            row.className = 'round-row bg-slate-950/50 p-2 rounded-lg border border-slate-800 space-y-1.5';
             
             row.innerHTML = `
-                <div class="col-span-2 text-[10px] text-slate-500 font-bold text-center">第 ${roundIdx} 局</div>
-                <div class="col-span-10 flex gap-1 items-center">
-                    <select class="round-finish-type w-full bg-slate-900 border border-slate-700 rounded text-[11px] p-1 text-slate-200">
-                        <option value="MY_SPIN">我方 持久/轉勝 (+1)</option>
+                <div class="grid grid-cols-12 gap-1 items-center">
+                    <div class="col-span-2 text-[10px] text-indigo-400 font-black text-center">局 ${roundIdx}</div>
+                    <div class="col-span-4">
+                        <select class="select-my-bey-matchup w-full bg-slate-900 border border-slate-700 text-blue-300 text-[11px] p-1 rounded outline-none">
+                            <option value="">-- 我方陀螺 --</option>
+                        </select>
+                    </div>
+                    <div class="col-span-2 text-[10px] text-slate-500 font-bold text-center">VS</div>
+                    <div class="col-span-4">
+                        <select class="select-opp-bey-matchup w-full bg-slate-900 border border-slate-700 text-amber-300 text-[11px] p-1 rounded outline-none">
+                            <option value="">-- 對手陀螺 --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] text-slate-500 font-bold pl-2">比分細節:</span>
+                    <select class="round-finish-type flex-grow bg-slate-900 border border-slate-700 rounded text-[11px] p-1 text-slate-200 outline-none">
+                        <option value="MY_SPIN">我方 轉停/持久 (+1)</option>
                         <option value="MY_OVER">我方 擊飛/動能 (+2)</option>
-                        <option value="MY_BURST">我方 極限/爆裂 (+3)</option>
-                        <option value="OPP_SPIN">對手 持久/轉勝 (+1)</option>
+                        <option value="MY_BURST">我方 爆裂終結 (+2)</option>
+                        <option value="MY_XTREME">我方 極限終結 (+3)</option>
+                        <option value="OPP_SPIN">對手 轉停/持久 (+1)</option>
                         <option value="OPP_OVER">對手 擊飛/動能 (+2)</option>
-                        <option value="OPP_BURST">對手 極限/爆裂 (+3)</option>
+                        <option value="OPP_BURST">對手 爆裂終結 (+2)</option>
+                        <option value="OPP_XTREME">對手 極限終結 (+3)</option>
                     </select>
                 </div>
             `;
             rowsList.appendChild(row);
 
-            // 只要下拉選單一改變，立即重新計算即時顯示的總分
             row.querySelector('.round-finish-type').addEventListener('change', () => {
                 calculateStageScore(stageBlock);
             });
 
+            updateSelectOptionsForElement(stageBlock, row);
             calculateStageScore(stageBlock);
         }
 
-        // 即時計算某一輪的得分總計
+        function updateAllSelectOptions() {
+            document.querySelectorAll('.stage-block').forEach(stageBlock => {
+                stageBlock.querySelectorAll('.round-row').forEach(row => {
+                    updateSelectOptionsForElement(stageBlock, row);
+                });
+            });
+        }
+
+        function updateSelectOptionsForElement(stageBlock, row) {
+            const mySelect = row.querySelector('.select-my-bey-matchup');
+            const oppSelect = row.querySelector('.select-opp-bey-matchup');
+            
+            const prevMyVal = mySelect.value;
+            const prevOppVal = oppSelect.value;
+
+            const myBeys = [];
+            document.querySelectorAll('.my-bey-input').forEach((input, i) => {
+                const val = input.value.trim();
+                myBeys.push(val || `我方陀螺 ${i+1}`);
+            });
+
+            const oppBeys = [];
+            const ob1 = stageBlock.querySelector('.opp-b1').value.trim() || "敵陀螺 1";
+            const ob2 = stageBlock.querySelector('.opp-b2').value.trim() || "敵陀螺 2";
+            const ob3 = stageBlock.querySelector('.opp-b3').value.trim() || "敵陀螺 3";
+            oppBeys.push(ob1, ob2, ob3);
+
+            mySelect.innerHTML = '<option value="">-- 我方陀螺 --</option>';
+            myBeys.forEach(b => { mySelect.innerHTML += `<option value="${b}">${b}</option>`; });
+            if (myBeys.includes(prevMyVal)) mySelect.value = prevMyVal;
+
+            oppSelect.innerHTML = '<option value="">-- 對手陀螺 --</option>';
+            oppBeys.forEach(b => { oppSelect.innerHTML += `<option value="${b}">${b}</option>`; });
+            if (oppBeys.includes(prevOppVal)) oppSelect.value = prevOppVal;
+        }
+
+        // 🛠️ 核心修改：重新調整計分加總的邏輯
         function calculateStageScore(stageBlock) {
             let myTotal = 0;
             let oppTotal = 0;
@@ -280,10 +338,12 @@
                 const val = select.value;
                 if (val === 'MY_SPIN') myTotal += 1;
                 if (val === 'MY_OVER') myTotal += 2;
-                if (val === 'MY_BURST') myTotal += 3;
+                if (val === 'MY_BURST') myTotal += 2;
+                if (val === 'MY_XTREME') myTotal += 3;
                 if (val === 'OPP_SPIN') oppTotal += 1;
                 if (val === 'OPP_OVER') oppTotal += 2;
-                if (val === 'OPP_BURST') oppTotal += 3;
+                if (val === 'OPP_BURST') oppTotal += 2;
+                if (val === 'OPP_XTREME') oppTotal += 3;
             });
             stageBlock.querySelector('.score-summary-display').innerText = `${myTotal} - ${oppTotal}`;
         }
@@ -302,23 +362,32 @@
                 let oppTotal = 0;
                 const roundsDetails = [];
 
-                // 收集並計算每局招式
-                block.querySelectorAll('.round-finish-type').forEach(select => {
-                    const val = select.value;
+                block.querySelectorAll('.round-row').forEach(row => {
+                    const val = row.querySelector('.round-finish-type').value;
+                    const mySelectedBey = row.querySelector('.select-my-bey-matchup').value || "未指定";
+                    const oppSelectedBey = row.querySelector('.select-opp-bey-matchup').value || "未指定";
+                    
                     let points = 0;
                     let winner = 'MY';
                     let actionText = '';
 
+                    // 依最新指定計分
                     if (val === 'MY_SPIN') { myTotal += 1; points = 1; winner = 'MY'; actionText = '轉停'; }
                     if (val === 'MY_OVER') { myTotal += 2; points = 2; winner = 'MY'; actionText = '擊飛'; }
-                    if (val === 'MY_OVER') { myTotal += 2; points = 2; winner = 'MY'; actionText = '爆裂'; }
-                    if (val === 'MY_BURST') { myTotal += 3; points = 3; winner = 'MY'; actionText = '極限'; }
+                    if (val === 'MY_BURST') { myTotal += 2; points = 2; winner = 'MY'; actionText = '爆裂'; }
+                    if (val === 'MY_XTREME') { myTotal += 3; points = 3; winner = 'MY'; actionText = '極限'; }
                     if (val === 'OPP_SPIN') { oppTotal += 1; points = 1; winner = 'OPP'; actionText = '轉停'; }
                     if (val === 'OPP_OVER') { oppTotal += 2; points = 2; winner = 'OPP'; actionText = '擊飛'; }
-                    if (val === 'OPP_OVER') { oppTotal += 2; points = 2; winner = 'OPP'; actionText = '爆裂'; }
-                    if (val === 'OPP_BURST') { oppTotal += 3; points = 3; winner = 'OPP'; actionText = '極限'; }
+                    if (val === 'OPP_BURST') { oppTotal += 2; points = 2; winner = 'OPP'; actionText = '爆裂'; }
+                    if (val === 'OPP_XTREME') { oppTotal += 3; points = 3; winner = 'OPP'; actionText = '極限'; }
 
-                    roundsDetails.push({ winner, actionText, points });
+                    roundsDetails.push({
+                        winner,
+                        actionText,
+                        points,
+                        myBey: mySelectedBey,
+                        oppBey: oppSelectedBey
+                    });
                 });
 
                 const calculatedResult = myTotal >= oppTotal ? 'WIN' : 'LOSE';
@@ -334,7 +403,7 @@
                     oppSetups: oppSetupsData,
                     stageResult: calculatedResult,
                     score: `${myTotal}-${oppTotal}`,
-                    rounds: roundsDetails // 將每小局詳細細節打包送入 JSON
+                    rounds: roundsDetails
                 });
             });
 
@@ -352,12 +421,14 @@
             if (error) {
                 alert('上傳雲端失敗: ' + error.message);
             } else {
-                alert('招式戰績完美保存！');
+                alert('全新計分規則戰績已同步成功！');
                 document.getElementById('match-form').reset();
                 document.getElementById('my-beys-container').innerHTML = `
                     <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-center h-8" placeholder="我方陀螺 1" required>
-                    <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-center h-8" placeholder="我方陀螺 2">
+                    <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-center h-8" placeholder="我方陀螺 2" required>
+                    <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-center h-8" placeholder="我方陀螺 3" required>
                 `;
+                document.querySelectorAll('.my-bey-input').forEach(input => input.addEventListener('input', updateAllSelectOptions));
                 document.getElementById('stages-container').innerHTML = '';
                 createStageBlock();
                 fetchUserMatches();
@@ -388,25 +459,32 @@
                 m.stages?.forEach(s => {
                     const oppBeysStr = s.oppSetups && s.oppSetups.length > 0 ? ` ［${s.oppSetups.join(' / ')}］` : '';
                     
-                    // 🌟 核心升級：解析並將每一局的歷史招式用文字標籤還原出來
                     let roundsDetailsHtml = '';
                     if(s.rounds && s.rounds.length > 0) {
                         const pills = s.rounds.map((r, i) => {
                             const isMy = r.winner === 'MY';
-                            return `<span class="inline-block text-[9px] px-1 py-0.5 rounded ${isMy ? 'bg-indigo-950/60 text-indigo-300 border border-indigo-900':'bg-rose-950/60 text-rose-300 border border-rose-900'}">局${i+1}:${isMy?'我':'敵'}${r.actionText}+${r.points}</span>`;
-                        }).join(' ');
-                        roundsDetailsHtml = `<div class="flex flex-wrap gap-1 mt-1">${pills}</div>`;
+                            return `
+                                <div class="text-[10px] bg-slate-950/40 border border-slate-700/60 p-1 rounded flex justify-between items-center w-full mt-0.5">
+                                    <span class="text-slate-400 font-mono">局${i+1}</span>
+                                    <span class="text-blue-300 font-medium truncate max-w-[120px]">${r.myBey}</span>
+                                    <span class="text-slate-500 text-[9px]">vs</span>
+                                    <span class="text-amber-300 font-medium truncate max-w-[120px]">${r.oppBey}</span>
+                                    <span class="ml-2 font-bold ${isMy ? 'text-indigo-400':'text-rose-400'}">${isMy?'我':'敵'}${r.actionText}+${r.points}</span>
+                                </div>
+                            `;
+                        }).join('');
+                        roundsDetailsHtml = `<div class="space-y-0.5 pt-1 border-t border-slate-800/60">${roundsDetailsHtml}</div>`;
                     }
 
                     stagesHtml += `
-                        <div class="bg-slate-900/50 p-2 rounded border border-slate-700/50">
+                        <div class="bg-slate-900/50 p-2 rounded border border-slate-700/50 space-y-1">
                             <div class="flex justify-between items-center font-bold">
                                 <span class="text-slate-300">${s.stageName} <span class="text-slate-500 font-normal">vs</span> ${s.oppName}</span>
                                 <span class="px-1.5 py-0.5 rounded text-[10px] ${s.stageResult === 'WIN' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800':'bg-rose-950 text-rose-400 border border-rose-800'}">
                                     ${s.score || ''} ${s.stageResult === 'WIN' ? '晉級':'淘汰'}
                                 </span>
                             </div>
-                            ${oppBeysStr ? `<div class="text-[10px] text-amber-500/70 mt-0.5 font-medium">敵方陣容:${oppBeysStr}</div>` : ''}
+                            ${oppBeysStr ? `<div class="text-[10px] text-amber-500/70 font-medium">敵方陣容:${oppBeysStr}</div>` : ''}
                             ${roundsDetailsHtml}
                         </div>
                     `;
@@ -418,8 +496,8 @@
                         <span class="text-indigo-400 font-bold">$${m.fee}</span>
                     </div>
                     <h4 class="font-black text-slate-200 text-sm">${m.tournament}</h4>
-                    <div class="text-slate-400 text-[11px]">我方陣容: <span class="text-blue-400">${m.my_setups?.join(', ')}</span></div>
-                    <div class="space-y-1 pt-1 border-t border-slate-700/40">${stagesHtml}</div>
+                    <div class="text-slate-400 text-[11px]">我方登記陣容: <span class="text-blue-400">${m.my_setups?.join(', ')}</span></div>
+                    <div class="space-y-1.5 pt-1 border-t border-slate-700/40">${stagesHtml}</div>
                 `;
                 listContainer.appendChild(card);
             });
