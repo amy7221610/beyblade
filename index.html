@@ -24,6 +24,7 @@
                 <div>
                     <div class="text-sm font-black text-white tracking-widest uppercase glow-text">BeybladeX</div>
                     <h1 class="text-2xl font-black text-indigo-400 tracking-wider mt-0.5">戰鬥陀螺紀錄站</h1>
+                    <p class="text-gray-400 text-xs mt-0.5">多用戶雲端版 • 賽制計分精準版</p>
                 </div>
                 <div id="user-status-area" class="text-right"></div>
             </div>
@@ -31,7 +32,7 @@
 
         <div id="auth-section" class="bg-gray-800 p-5 rounded-xl border border-gray-700 shadow-xl space-y-4">
             <div class="text-center space-y-1">
-                <h3 class="text-md font-bold text-gray-200">🏆 歡迎來到陀螺選手戰績庫</h3>
+                <h3 class="text-md font-bold text-gray-200">🏆 歡迎來到全台陀螺選手戰績庫</h3>
                 <p class="text-xs text-gray-400">註冊專屬帳號，即可擁有個人化大數據分析與隨身雲端筆記。</p>
             </div>
             
@@ -91,7 +92,18 @@
 
             <div class="bg-gray-800 p-3.5 rounded-xl border border-gray-700 shadow-md space-y-2">
                 <div class="flex justify-between items-center">
-                    <h3 class="text-xs font-extrabold text-indigo-400 uppercase tracking-wider">📥 快速文字/CSV匯入基本資料</h3>
+                    <h3 class="text-xs font-extrabold text-green-400 uppercase tracking-wider">📂 匯入整份 JSON 歷史備份檔</h3>
+                    <span class="text-xs text-gray-500">歷史紀錄直接同步</span>
+                </div>
+                <input type="file" id="upload-json-file" accept=".json" class="hidden">
+                <button type="button" onclick="document.getElementById('upload-json-file').click()" class="w-full bg-green-700 hover:bg-green-600 text-white text-xs font-bold py-2 rounded-lg transition border border-green-600 shadow-sm">
+                    📁 選擇上方的備份檔案 (import_data.json) 批量匯入
+                </button>
+            </div>
+
+            <div class="bg-gray-800 p-3.5 rounded-xl border border-gray-700 shadow-md space-y-2">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xs font-extrabold text-indigo-400 uppercase tracking-wider">📥 快速文字/單筆簡便填寫</h3>
                     <span class="text-xs text-gray-500">免逐欄手打</span>
                 </div>
                 <div class="space-y-1.5">
@@ -206,7 +218,51 @@
             if (error) alert('登入失敗: ' + error.message);
         });
 
-        // 匯入解析邏輯
+        // 檔案批量匯入核心解析邏輯
+        document.getElementById('upload-json-file').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (!currentUser) return alert('請先登入帳號再進行匯入功能！');
+
+            const reader = new FileReader();
+            reader.onload = async function(evt) {
+                try {
+                    const rawData = JSON.parse(evt.target.result);
+                    if (!Array.isArray(rawData)) {
+                        throw new Error('戰績備份格式錯誤，最外層必須是陣列 []');
+                    }
+
+                    // 強制綁定當前登入使用者的 user_id
+                    const finalDataToInsert = rawData.map(match => ({
+                        user_id: currentUser.id,
+                        date: match.date || new Date().toISOString().split('T')[0],
+                        tournament: match.tournament || '未命名賽事',
+                        players: String(match.players || ''),
+                        fee: Number(match.fee) || 0,
+                        my_setups: match.my_setups || [],
+                        stages: match.stages || [],
+                        notes: match.notes || ''
+                    }));
+
+                    // 寫入資料庫
+                    const { data, error } = await gyroSupabase.from('matches_v2').insert(finalDataToInsert);
+
+                    if (error) {
+                        alert('同步雲端失敗：' + error.message);
+                    } else {
+                        alert(`🎉 恭喜！已成功匯入 ${finalDataToInsert.length} 筆歷史戰績到您的雲端帳號中！`);
+                        fetchUserMatches(); // 刷新網頁上的戰績清單
+                    }
+                } catch (err) {
+                    alert('讀取失敗，請確認檔案內容是正確格式的 JSON：' + err.message);
+                }
+                // 清空選取器以便重複使用
+                e.target.value = '';
+            };
+            reader.readAsText(file);
+        });
+
+        // 單筆快速解析填寫
         document.getElementById('import-parse-btn').addEventListener('click', () => {
             const importText = document.getElementById('import-text').value.trim();
             if(!importText) return alert('請先輸入或貼上要匯入的文字資料！');
