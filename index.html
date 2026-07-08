@@ -10,6 +10,7 @@
         input, select, button { -webkit-tap-highlight-color: transparent; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        /* 白色螢光字體效果 */
         .glow-text {
             text-shadow: 0 0 4px rgba(255, 255, 255, 0.8), 0 0 10px rgba(255, 255, 255, 0.5);
         }
@@ -91,16 +92,19 @@
 
             <div class="bg-gray-800 p-3.5 rounded-xl border border-gray-700 shadow-md space-y-2">
                 <div class="flex justify-between items-center">
-                    <h3 class="text-xs font-extrabold text-green-400 uppercase tracking-wider">📂 匯入整份 JSON 歷史備份檔</h3>
-                    <span class="text-xs text-gray-500">歷史紀錄直接同步</span>
+                    <h3 class="text-xs font-extrabold text-indigo-400 uppercase tracking-wider">📥 快速文字/CSV匯入基本資料</h3>
+                    <span class="text-xs text-gray-500">免逐欄手打</span>
                 </div>
-              
+                <div class="space-y-1.5">
+                    <textarea id="import-text" rows="2" placeholder="格式範例: 2026-07-09, 台北店賽, 64人, 150, 雙人對戰貼紙" class="w-full p-2 text-xs bg-gray-900 border border-gray-700 rounded-lg text-gray-300 outline-none resize-none font-mono placeholder:text-gray-600"></textarea>
+                    <button type="button" id="import-parse-btn" class="w-full bg-gray-700 hover:bg-gray-600 text-gray-200 text-xs font-bold py-1.5 rounded-lg transition border border-gray-600 shadow-sm">
+                        ⚡ 解析並填入下方表單
+                    </button>
+                </div>
+            </div>
 
             <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-xl">
-                <div class="flex justify-between items-center border-b border-gray-700 pb-2 mb-3">
-                    <h2 id="form-title" class="text-sm font-extrabold text-gray-200">📝 登錄新賽事</h2>
-                    <button type="button" id="btn-cancel-edit" class="hidden text-xs text-gray-400 underline hover:text-red-400">❌ 取消修改</button>
-                </div>
+                <h2 id="form-title" class="text-sm font-extrabold text-gray-200 mb-3 border-b border-gray-700 pb-2">📝 登錄新賽事</h2>
                 <form id="match-form" class="space-y-3.5">
                     <div class="grid grid-cols-2 gap-2">
                         <div>
@@ -112,7 +116,7 @@
                             <input type="text" id="tournament" placeholder="例如：金典 G3 店賽" required class="w-full p-2 text-xs bg-gray-900 border border-gray-700 rounded-lg text-gray-200 outline-none h-9">
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-2">
+                    <div class="grid grid-cols-3 gap-2">
                         <div>
                             <label class="block text-xs font-bold text-gray-400 mb-1">總人數</label>
                             <input type="text" id="players" placeholder="64人" class="w-full p-2 text-xs bg-gray-900 border border-gray-700 rounded-lg text-gray-200 outline-none h-9">
@@ -120,6 +124,10 @@
                         <div>
                             <label class="block text-xs font-bold text-gray-400 mb-1">報名費 ($)</label>
                             <input type="number" id="fee" placeholder="0" class="w-full p-2 text-xs bg-gray-900 border border-gray-700 rounded-lg text-gray-200 outline-none h-9">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 mb-1">參賽獎品</label>
+                            <input type="text" id="prize" placeholder="基本包/貼紙" class="w-full p-2 text-xs bg-gray-900 border border-gray-700 rounded-lg text-gray-200 outline-none h-9">
                         </div>
                     </div>
 
@@ -137,14 +145,14 @@
 
                     <div id="stages-container" class="space-y-3"></div>
                     <button type="button" id="btn-add-stage" class="w-full py-2 bg-gray-700 text-green-400 text-xs font-bold rounded-lg border border-dashed border-green-500 border-opacity-40 h-9">+ 新增下一輪賽事</button>
-                    <button type="submit" id="btn-submit-form" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-lg text-xs h-11 tracking-wider">💾 儲存至雲端個人戰績庫</button>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-lg text-xs h-11 tracking-wider">💾 儲存至雲端個人戰績庫</button>
                 </form>
             </div>
 
             <div class="space-y-2">
                 <div class="flex flex-col gap-1.5 sm:flex-row sm:justify-between sm:items-center">
                     <h2 class="text-xs font-extrabold text-gray-400 uppercase tracking-wider">🔍 您的歷史戰績紀錄</h2>
-                    <input type="text" id="search-records" placeholder="搜尋比賽、對手、陀螺、日期" class="w-full sm:w-64 p-2 text-xs bg-gray-800 border border-gray-700 rounded-lg text-gray-200 outline-none h-8">
+                    <input type="text" id="search-records" placeholder="搜尋比賽、對手、陀螺、日期或獎品" class="w-full sm:w-64 p-2 text-xs bg-gray-800 border border-gray-700 rounded-lg text-gray-200 outline-none h-8">
                 </div>
                 <div id="records-list" class="space-y-2"></div>
             </div>
@@ -158,7 +166,6 @@
         const gyroSupabase = window.supabase.createClient(url_config, key_config);
         let currentUser = null;
         let myMatches = [];
-        let editingMatchId = null; // 用來標記目前正在編輯哪一筆資料
 
         gyroSupabase.auth.onAuthStateChange((event, session) => {
             if (session) {
@@ -200,23 +207,36 @@
             if (error) alert('登入失敗: ' + error.message);
         });
 
+        // 匯入解析邏輯
+        document.getElementById('import-parse-btn').addEventListener('click', () => {
+            const importText = document.getElementById('import-text').value.trim();
+            if(!importText) return alert('請先輸入或貼上要匯入的文字資料！');
+            
+            const tokens = importText.split(/[,，\t]/).map(t => t.trim());
+            
+            if(tokens.length > 0 && tokens[0]) {
+                if(/^\d{4}-\d{2}-\d{2}$/.test(tokens[0])) {
+                    document.getElementById('date').value = tokens[0];
+                }
+            }
+            if(tokens.length > 1 && tokens[1]) document.getElementById('tournament').value = tokens[1];
+            if(tokens.length > 2 && tokens[2]) document.getElementById('players').value = tokens[2];
+            if(tokens.length > 3 && tokens[3]) document.getElementById('fee').value = tokens[3];
+            if(tokens.length > 4 && tokens[4]) document.getElementById('prize').value = tokens[4];
 
-        document.getElementById('btn-add-my-bey').addEventListener('click', () => {
-            addMyBeyInputField('');
+            alert('基本資料解析填入完畢！請繼續確認並填寫下方陀螺陣容與賽事局數。');
         });
 
-        function addMyBeyInputField(value = '') {
+        document.getElementById('btn-add-my-bey').addEventListener('click', () => {
             const container = document.getElementById('my-beys-container');
             const beyCount = container.querySelectorAll('.my-bey-input').length + 1;
             const input = document.createElement('input');
             input.type = 'text';
             input.className = 'my-bey-input w-full p-1.5 text-xs bg-gray-900 border border-gray-700 rounded-lg text-gray-200 text-center h-8';
             input.placeholder = `我方陀螺 ${beyCount}`;
-            input.value = value;
             input.addEventListener('input', updateAllSelectOptions);
             container.appendChild(input);
-            return input;
-        }
+        });
 
         document.querySelectorAll('.my-bey-input').forEach(input => {
             input.addEventListener('input', updateAllSelectOptions);
@@ -238,7 +258,7 @@
             }
         }
 
-        function createStageBlock(stageData = null) {
+        function createStageBlock() {
             const container = document.getElementById('stages-container');
             const stageIndex = container.children.length;
             const block = document.createElement('div');
@@ -278,6 +298,8 @@
             `;
             container.appendChild(block);
             
+            if(stageIndex === 0) block.querySelector('.stage-name-input').value = "預賽第一輪";
+
             block.querySelectorAll('.opp-b1, .opp-b2, .opp-b3').forEach(input => {
                 input.addEventListener('input', updateAllSelectOptions);
             });
@@ -286,27 +308,10 @@
                 addRoundRow(block);
             });
 
-            if (stageData) {
-                block.querySelector('.stage-name-input').value = stageData.stageName || '';
-                block.querySelector('.opp-name').value = stageData.oppName || '';
-                const oppSetups = stageData.oppSetups || [];
-                if(oppSetups[0]) block.querySelector('.opp-b1').value = oppSetups[0];
-                if(oppSetups[1]) block.querySelector('.opp-b2').value = oppSetups[1];
-                if(oppSetups[2]) block.querySelector('.opp-b3').value = oppSetups[2];
-
-                if(stageData.rounds && stageData.rounds.length > 0) {
-                    stageData.rounds.forEach(r => addRoundRow(block, r));
-                } else {
-                    addRoundRow(block);
-                }
-            } else {
-                if(stageIndex === 0) block.querySelector('.stage-name-input').value = "預賽第一輪";
-                addRoundRow(block);
-            }
-            calculateStageScore(block);
+            addRoundRow(block);
         }
 
-        function addRoundRow(stageBlock, roundData = null) {
+        function addRoundRow(stageBlock) {
             const rowsList = stageBlock.querySelector('.rounds-rows-list');
             const roundIdx = rowsList.children.length + 1;
             const row = document.createElement('div');
@@ -349,31 +354,6 @@
             });
 
             updateSelectOptionsForElement(stageBlock, row);
-
-            if (roundData) {
-                const mySelect = row.querySelector('.select-my-bey-matchup');
-                const oppSelect = row.querySelector('.select-opp-bey-matchup');
-                const typeSelect = row.querySelector('.round-finish-type');
-
-                if(roundData.myBey) mySelect.value = roundData.myBey;
-                if(roundData.oppBey) oppSelect.value = roundData.oppBey;
-
-                // 映射還原 finish type
-                let valKey = 'MY_SPIN';
-                if(roundData.winner === 'MY') {
-                    if(roundData.actionText === '轉停') valKey = 'MY_SPIN';
-                    if(roundData.actionText === '擊飛') valKey = 'MY_OVER';
-                    if(roundData.actionText === '爆裂') valKey = 'MY_BURST';
-                    if(roundData.actionText === '極限') valKey = 'MY_XTREME';
-                } else {
-                    if(roundData.actionText === '轉停') valKey = 'OPP_SPIN';
-                    if(roundData.actionText === '擊飛') valKey = 'OPP_OVER';
-                    if(roundData.actionText === '爆裂') valKey = 'OPP_BURST';
-                    if(roundData.actionText === '極限') valKey = 'OPP_XTREME';
-                }
-                typeSelect.value = valKey;
-            }
-
             calculateStageScore(stageBlock);
         }
 
@@ -430,7 +410,6 @@
             stageBlock.querySelector('.score-summary-display').innerText = `${myTotal} - ${oppTotal}`;
         }
 
-        // 表單提交：支援「新增」與「修改」
         document.getElementById('match-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -489,97 +468,37 @@
                 });
             });
 
-            const matchData = {
+            const prizeText = document.getElementById('prize').value.trim();
+
+            const newMatch = {
                 user_id: currentUser.id,
                 date: document.getElementById('date').value,
                 tournament: document.getElementById('tournament').value,
                 players: document.getElementById('players').value,
                 fee: Number(document.getElementById('fee').value) || 0,
                 my_setups: mySetupsData,
-                stages: stagesData
+                stages: stagesData,
+                notes: prizeText 
             };
 
-            let responseError = null;
-
-            if (editingMatchId) {
-                // 修改既有戰績
-                const { error } = await gyroSupabase.from('matches_v2').update(matchData).eq('id', editingMatchId);
-                responseError = error;
+            const { error } = await gyroSupabase.from('matches_v2').insert([newMatch]);
+            if (error) {
+                alert('上傳雲端失敗: ' + error.message);
             } else {
-                // 新增戰績
-                const { error } = await gyroSupabase.from('matches_v2').insert([matchData]);
-                responseError = error;
-            }
-
-            if (responseError) {
-                alert('上傳雲端失敗: ' + responseError.message);
-            } else {
-                alert(editingMatchId ? '戰績修改成功！' : '戰績新增成功，已同步至雲端！');
-                resetFormStatus();
+                alert('更新成功，戰績已同步！');
+                document.getElementById('match-form').reset();
+                document.getElementById('import-text').value = ''; 
+                document.getElementById('my-beys-container').innerHTML = `
+                    <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-gray-900 border border-gray-700 rounded-lg text-gray-200 text-center h-8" placeholder="我方陀螺 1" required>
+                    <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-gray-900 border border-gray-700 rounded-lg text-gray-200 text-center h-8" placeholder="我方陀螺 2" required>
+                    <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-gray-900 border border-gray-700 rounded-lg text-gray-200 text-center h-8" placeholder="我方陀螺 3" required>
+                `;
+                document.querySelectorAll('.my-bey-input').forEach(input => input.addEventListener('input', updateAllSelectOptions));
+                document.getElementById('stages-container').innerHTML = '';
+                createStageBlock();
                 fetchUserMatches();
             }
         });
-
-        // 進入編輯狀態把舊資料帶入表單
-        function startEditMatch(matchId) {
-            const match = myMatches.find(m => m.id === matchId);
-            if (!match) return;
-
-            editingMatchId = matchId;
-            document.getElementById('form-title').innerText = "✏️ 修改既有賽事資料";
-            document.getElementById('btn-cancel-edit').classList.remove('hidden');
-            document.getElementById('btn-submit-form').innerText = "💾 儲存修改內容";
-
-            // 填入基礎資料
-            document.getElementById('date').value = match.date || '';
-            document.getElementById('tournament').value = match.tournament || '';
-            document.getElementById('players').value = match.players || '';
-            document.getElementById('fee').value = match.fee || 0;
-
-            // 還原我方陀螺庫
-            const container = document.getElementById('my-beys-container');
-            container.innerHTML = '';
-            const setups = match.my_setups || match.mySetups || [];
-            if (setups.length === 0) {
-                addMyBeyInputField('');
-                addMyBeyInputField('');
-                addMyBeyInputField('');
-            } else {
-                setups.forEach(bey => addMyBeyInputField(bey));
-            }
-
-            // 還原對戰輪數
-            document.getElementById('stages-container').innerHTML = '';
-            if (match.stages && match.stages.length > 0) {
-                match.stages.forEach(s => createStageBlock(s));
-            } else {
-                createStageBlock();
-            }
-
-            // 滾動回到頂部表單區
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        // 取消修改或重設表單狀態
-        function resetFormStatus() {
-            editingMatchId = null;
-            document.getElementById('form-title').innerText = "📝 登錄新賽事";
-            document.getElementById('btn-cancel-edit').classList.add('hidden');
-            document.getElementById('btn-submit-form').innerText = "💾 儲存至雲端個人戰績庫";
-            
-            document.getElementById('match-form').reset();
-            document.getElementById('date').value = new Date().toISOString().split('T')[0];
-            document.getElementById('my-beys-container').innerHTML = `
-                <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-gray-900 border border-gray-700 rounded-lg text-gray-200 text-center h-8" placeholder="我方陀螺 1" required>
-                <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-gray-900 border border-gray-700 rounded-lg text-gray-200 text-center h-8" placeholder="我方陀螺 2" required>
-                <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-gray-900 border border-gray-700 rounded-lg text-gray-200 text-center h-8" placeholder="我方陀螺 3" required>
-            `;
-            document.querySelectorAll('.my-bey-input').forEach(input => input.addEventListener('input', updateAllSelectOptions));
-            document.getElementById('stages-container').innerHTML = '';
-            createStageBlock();
-        }
-
-        document.getElementById('btn-cancel-edit').addEventListener('click', resetFormStatus);
 
         function renderDashboardAndList() {
             document.getElementById('stat-total').innerText = `${myMatches.length} 場`;
@@ -634,8 +553,8 @@
                 if (!keyword) return true;
                 if (m.date && m.date.toLowerCase().includes(keyword)) return true;
                 if (m.tournament && m.tournament.toLowerCase().includes(keyword)) return true;
-                const setups = m.my_setups || m.mySetups || [];
-                if (setups.some(b => b.toLowerCase().includes(keyword))) return true;
+                if (m.notes && m.notes.toLowerCase().includes(keyword)) return true; 
+                if (m.my_setups && m.my_setups.some(b => b.toLowerCase().includes(keyword))) return true;
                 
                 if (m.stages && m.stages.some(s => {
                     if (s.oppName && s.oppName.toLowerCase().includes(keyword)) return true;
@@ -649,13 +568,13 @@
             });
 
             if(filteredMatches.length === 0) {
-                listContainer.innerHTML = `<div class="text-center p-4 text-xs text-gray-500">${myMatches.length === 0 ? '目前您的雲端庫還沒有戰績紀錄喔！' : '找不到符合關鍵字的歷史紀錄。'}</div>`;
+                listContainer.innerHTML = `<div class="text-center p-4 text-xs text-gray-500">${myMatches.length === 0 ? '目前您的雲端庫還沒有戰績紀錄喔！' : '找不到符合關鍵字、日期或獎品的歷史紀錄。'}</div>`;
                 return;
             }
 
             filteredMatches.forEach(m => {
                 const card = document.createElement('div');
-                card.className = 'bg-gray-800 p-3 rounded-xl border border-gray-700 text-xs space-y-1.5 relative';
+                card.className = 'bg-gray-800 p-3 rounded-xl border border-gray-700 text-xs space-y-1.5';
                 let stagesHtml = '';
                 
                 m.stages && m.stages.forEach(s => {
@@ -692,18 +611,18 @@
                     `;
                 });
 
-                const setups = m.my_setups || m.mySetups || [];
+                const prizeDisplay = m.notes ? `<span class="bg-gray-700 text-yellow-300 text-xs px-1.5 py-0.5 rounded">🎁 獎品: ${m.notes}</span>` : '';
 
                 card.innerHTML = `
                     <div class="flex justify-between items-center text-xs text-gray-400">
                         <span>📅 ${m.date} | 👥 ${m.players || '未知'}</span>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-1.5">
+                            ${prizeDisplay}
                             <span class="text-indigo-400 font-bold">$${m.fee}</span>
-                            <button type="button" onclick="startEditMatch(${m.id})" class="text-xs text-indigo-400 font-bold hover:underline bg-gray-700 bg-opacity-50 px-1.5 py-0.5 rounded border border-gray-600">✏️ 編輯</button>
                         </div>
                     </div>
-                    <h4 class="font-black text-gray-200 text-sm mt-0.5">${m.tournament}</h4>
-                    <div class="text-gray-400 text-xs">我方登記陣容: <span class="text-blue-400">${setups.join(', ')}</span></div>
+                    <h4 class="font-black text-gray-200 text-sm">${m.tournament}</h4>
+                    <div class="text-gray-400 text-xs">我方登記陣容: <span class="text-blue-400">${m.my_setups ? m.my_setups.join(', ') : ''}</span></div>
                     <div class="space-y-1.5 pt-1 border-t border-gray-700 border-opacity-40">${stagesHtml}</div>
                 `;
                 listContainer.appendChild(card);
