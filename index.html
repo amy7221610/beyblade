@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>戰鬥陀螺戰績社群網</title>
+    <title>戰鬥陀螺大賽級戰績社群網</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -18,7 +18,7 @@
         <header class="mb-4 border-b border-slate-700 pb-3 flex flex-col gap-2">
             <div class="flex justify-between items-center">
                 <div>
-                    <h1 class="text-xl font-black text-indigo-400 tracking-wider">🌪️ 陀螺戰績社群網</h1>
+                    <h1 class="text-xl font-black text-indigo-400 tracking-wider">🌪️ 陀螺大賽戰績社群網</h1>
                     <p class="text-slate-400 text-xs mt-0.5">多用戶雲端版 • 支援 Google 一鍵登入</p>
                 </div>
                 <div id="user-status-area" class="text-right"></div>
@@ -27,7 +27,7 @@
 
         <div id="auth-section" class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl space-y-4">
             <div class="text-center space-y-1">
-                <h3 class="text-md font-bold text-slate-200">🏆 歡迎來到陀螺選手戰績庫</h3>
+                <h3 class="text-md font-bold text-slate-200">🏆 歡迎來到全台陀螺選手戰績庫</h3>
                 <p class="text-xs text-slate-400">註冊專屬帳號，即可擁有個人化大數據分析與隨身雲端筆記。</p>
             </div>
             
@@ -95,12 +95,14 @@
                         </div>
                     </div>
 
-                    <div class="bg-blue-950/40 p-2 rounded-xl border border-blue-900/40 space-y-1">
-                        <span class="text-[11px] font-black text-blue-400 block">🛡️ 我方此戰登記陀螺庫</span>
-                        <div class="grid grid-cols-3 gap-1">
-                            <input type="text" id="my-b1" placeholder="陀螺1" required class="w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-center h-8">
-                            <input type="text" id="my-b2" placeholder="陀螺2" class="w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-center h-8">
-                            <input type="text" id="my-b3" placeholder="陀螺3" class="w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-center h-8">
+                    <div class="bg-blue-950/40 p-3 rounded-xl border border-blue-900/40 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[11px] font-black text-blue-400 block">🛡️ 我方此戰登記陀螺庫</span>
+                            <button type="button" id="btn-add-my-bey" class="bg-blue-600/80 hover:bg-blue-500 text-white font-bold text-[10px] px-2 py-0.5 rounded transition">➕ 新增陀螺</button>
+                        </div>
+                        <div id="my-beys-container" class="grid grid-cols-2 gap-1.5">
+                            <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-center h-8" placeholder="我方陀螺 1" required>
+                            <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-center h-8" placeholder="我方陀螺 2">
                         </div>
                     </div>
 
@@ -150,20 +152,19 @@
             }
         });
 
-        // 登入相關按鈕事件監聽
+        // 登入按鈕事件
         document.getElementById('btn-google').addEventListener('click', async () => {
-            const { data, error } = await gyroSupabase.auth.signInWithOAuth({
+            await gyroSupabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: { redirectTo: window.location.origin }
             });
-            if (error) alert('Google 登入失敗: ' + error.message);
         });
 
         document.getElementById('btn-signup').addEventListener('click', async () => {
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value;
             if(!email || !password) return alert('信箱與密碼都要填寫喔！');
-            const { data, error } = await gyroSupabase.auth.signUp({ email, password });
+            const { error } = await gyroSupabase.auth.signUp({ email, password });
             if (error) alert('註冊失敗: ' + error.message);
             else alert('註冊成功！系統已自動幫您登入。');
         });
@@ -171,8 +172,18 @@
         document.getElementById('btn-login').addEventListener('click', async () => {
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value;
-            const { data, error } = await gyroSupabase.auth.signInWithPassword({ email, password });
+            const { error } = await gyroSupabase.auth.signInWithPassword({ email, password });
             if (error) alert('登入失敗: ' + error.message);
+        });
+
+        document.getElementById('btn-add-my-bey').addEventListener('click', () => {
+            const container = document.getElementById('my-beys-container');
+            const beyCount = container.querySelectorAll('.my-bey-input').length + 1;
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'my-bey-input w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-center h-8';
+            input.placeholder = `我方陀螺 ${beyCount}`;
+            container.appendChild(input);
         });
 
         document.getElementById('btn-add-stage').addEventListener('click', () => {
@@ -190,24 +201,39 @@
             }
         }
 
+        // 🛠️ 核心修改：每輪賽事區塊（包含對手 3 顆陀螺 + 分數挑選）
         function createStageBlock() {
             const container = document.getElementById('stages-container');
             const stageIndex = container.children.length + 1;
             const block = document.createElement('div');
-            block.className = 'stage-block bg-slate-900/60 p-3 rounded-xl border border-slate-700/80 space-y-2';
+            block.className = 'stage-block bg-slate-900/60 p-3 rounded-xl border border-slate-700/80 space-y-2.5';
             block.innerHTML = `
-                <div class="flex justify-between items-center border-b border-slate-700 pb-1">
-                    <input type="text" class="stage-name-input bg-slate-800 border border-slate-600 rounded text-xs p-1 font-bold text-slate-100 h-7 w-1/2" placeholder="例如：預賽第一輪" required>
-                    <span class="text-[11px] font-bold text-slate-400">此輪結果: 
-                        <select class="stage-result bg-slate-900 border border-slate-700 rounded p-0.5 text-emerald-400 text-xs">
-                            <option value="WIN">🏆 獲勝/晉級</option>
-                            <option value="LOSE">❌ 戰敗/淘汰</option>
+                <div class="flex justify-between items-center border-b border-slate-700 pb-1.5">
+                    <input type="text" class="stage-name-input bg-slate-800 border border-slate-600 rounded text-xs p-1 font-bold text-slate-100 h-7 w-2/5" placeholder="例如：預賽第一輪" required>
+                    
+                    <div class="flex items-center gap-1 text-xs">
+                        <span class="text-slate-400 font-bold">比分:</span>
+                        <select class="score-me bg-slate-900 border border-slate-700 rounded p-0.5 text-indigo-400 font-bold text-center w-10">
+                            <option value="3">3</option><option value="2">2</option><option value="1">1</option><option value="0" selected>0</option><option value="4">4</option><option value="5">5</option>
                         </select>
-                    </span>
+                        <span class="text-slate-500 font-black">:</span>
+                        <select class="score-opp bg-slate-900 border border-slate-700 rounded p-0.5 text-rose-400 font-bold text-center w-10">
+                            <option value="3">3</option><option value="2">2</option><option value="1">1</option><option value="0" selected>0</option><option value="4">4</option><option value="5">5</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="grid grid-cols-2 gap-2 text-xs">
-                    <input type="text" class="opp-name bg-slate-800 border border-slate-700 p-1 rounded" placeholder="對手名字" required>
-                    <input type="text" class="opp-b1 bg-slate-800 border border-slate-700 p-1 rounded" placeholder="對手使用陀螺 (選填)">
+
+                <div class="space-y-1.5">
+                    <div class="text-[11px] font-bold text-slate-400 flex justify-between">
+                        <span>👤 對手名字</span>
+                        <span class="text-amber-400">🕵️ 對手戰用三陀螺陣容</span>
+                    </div>
+                    <div class="grid grid-cols-4 gap-1">
+                        <input type="text" class="opp-name bg-slate-800 border border-slate-700 p-1.5 text-xs rounded text-slate-200" placeholder="名字" required>
+                        <input type="text" class="opp-b1 bg-slate-800 border border-slate-700 p-1.5 text-xs rounded text-center text-amber-300" placeholder="陀螺 1">
+                        <input type="text" class="opp-b2 bg-slate-800 border border-slate-700 p-1.5 text-xs rounded text-center text-amber-300" placeholder="陀螺 2">
+                        <input type="text" class="opp-b3 bg-slate-800 border border-slate-700 p-1.5 text-xs rounded text-center text-amber-300" placeholder="陀螺 3">
+                    </div>
                 </div>
             `;
             container.appendChild(block);
@@ -216,14 +242,33 @@
 
         document.getElementById('match-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            const mySetupsData = [];
+            document.querySelectorAll('.my-bey-input').forEach(input => {
+                if (input.value.trim()) mySetupsData.push(input.value.trim());
+            });
+
             const stagesData = [];
             document.querySelectorAll('.stage-block').forEach(block => {
+                const sMe = parseInt(block.querySelector('.score-me').value) || 0;
+                const sOpp = parseInt(block.querySelector('.score-opp').value) || 0;
+                
+                // 從分數自動判斷晉級或淘汰
+                const calculatedResult = sMe >= sOpp ? 'WIN' : 'LOSE';
+
+                // 收集對手填寫的三顆陀螺
+                const oppSetupsData = [
+                    block.querySelector('.opp-b1').value.trim(),
+                    block.querySelector('.opp-b2').value.trim(),
+                    block.querySelector('.opp-b3').value.trim()
+                ].filter(Boolean);
+
                 stagesData.push({
                     stageName: block.querySelector('.stage-name-input').value,
                     oppName: block.querySelector('.opp-name').value,
-                    oppSetups: [block.querySelector('.opp-b1').value].filter(Boolean),
-                    stageResult: block.querySelector('.stage-result').value,
-                    rounds: []
+                    oppSetups: oppSetupsData,
+                    stageResult: calculatedResult,
+                    score: `${sMe}-${sOpp}` // 把比分存進去資料庫
                 });
             });
 
@@ -233,11 +278,7 @@
                 tournament: document.getElementById('tournament').value,
                 players: document.getElementById('players').value,
                 fee: Number(document.getElementById('fee').value) || 0,
-                my_setups: [
-                    document.getElementById('my-b1').value,
-                    document.getElementById('my-b2').value,
-                    document.getElementById('my-b3').value
-                ].filter(Boolean),
+                my_setups: mySetupsData,
                 stages: stagesData
             };
 
@@ -245,8 +286,12 @@
             if (error) {
                 alert('上傳雲端失敗: ' + error.message);
             } else {
-                alert('戰績成功寫入您的公開雲端庫！');
+                alert('戰績與局數比分成功登記！');
                 document.getElementById('match-form').reset();
+                document.getElementById('my-beys-container').innerHTML = `
+                    <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-center h-8" placeholder="我方陀螺 1" required>
+                    <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-center h-8" placeholder="我方陀螺 2">
+                `;
                 document.getElementById('stages-container').innerHTML = '';
                 createStageBlock();
                 fetchUserMatches();
@@ -271,25 +316,32 @@
 
             myMatches.forEach(m => {
                 const card = document.createElement('div');
-                card.className = 'bg-slate-800 p-3 rounded-xl border border-slate-700 text-xs';
+                card.className = 'bg-slate-800 p-3 rounded-xl border border-slate-700 text-xs space-y-1.5';
                 let stagesHtml = '';
                 m.stages?.forEach(s => {
+                    // 顯示比分與對手三顆陀螺
+                    const oppBeysStr = s.oppSetups && s.oppSetups.length > 0 ? ` ［${s.oppSetups.join(' / ')}］` : '';
                     stagesHtml += `
-                        <div class="mt-1 bg-slate-900/40 p-1.5 rounded flex justify-between">
-                            <span class="text-slate-300 font-bold">${s.stageName} (vs ${s.oppName})</span>
-                            <span class="${s.stageResult === 'WIN' ? 'text-emerald-400':'text-rose-400'}">${s.stageResult === 'WIN' ? '🏆 晉級':'❌ 淘汰'}</span>
+                        <div class="bg-slate-900/50 p-2 rounded border border-slate-700/50">
+                            <div class="flex justify-between items-center font-bold">
+                                <span class="text-slate-300">${s.stageName} <span class="text-slate-500 font-normal">vs</span> ${s.oppName}</span>
+                                <span class="px-1.5 py-0.5 rounded text-[10px] ${s.stageResult === 'WIN' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800':'bg-rose-950 text-rose-400 border border-rose-800'}">
+                                    ${s.score || ''} ${s.stageResult === 'WIN' ? '晉級':'淘汰'}
+                                </span>
+                            </div>
+                            ${oppBeysStr ? `<div class="text-[10px] text-amber-500/80 mt-1 font-medium">敵方陣容:${oppBeysStr}</div>` : ''}
                         </div>
                     `;
                 });
 
                 card.innerHTML = `
-                    <div class="flex justify-between items-center text-[10px] text-slate-400 mb-1">
+                    <div class="flex justify-between items-center text-[10px] text-slate-400">
                         <span>📅 ${m.date} | 👥 ${m.players || '未知'}</span>
                         <span class="text-indigo-400 font-bold">$${m.fee}</span>
                     </div>
-                    <h4 class="font-black text-slate-200 text-sm mb-1">${m.tournament}</h4>
-                    <div class="text-slate-400 text-[11px]">使用陣容: <span class="text-blue-400">${m.my_setups?.join(', ')}</span></div>
-                    ${stagesHtml}
+                    <h4 class="font-black text-slate-200 text-sm">${m.tournament}</h4>
+                    <div class="text-slate-400 text-[11px]">我方陣容: <span class="text-blue-400">${m.my_setups?.join(', ')}</span></div>
+                    <div class="space-y-1 pt-1 border-t border-slate-700/40">${stagesHtml}</div>
                 `;
                 listContainer.appendChild(card);
             });
