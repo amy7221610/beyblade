@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>戰鬥陀螺比分紀錄</title>
+    <title>戰鬥陀螺戰機紀錄</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -18,7 +18,7 @@
         <header class="mb-4 border-b border-slate-700 pb-3 flex flex-col gap-2">
             <div class="flex justify-between items-center">
                 <div>
-                    <h1 class="text-xl font-black text-indigo-400 tracking-wider">戰鬥陀螺比分紀錄</h1>
+                    <h1 class="text-xl font-black text-indigo-400 tracking-wider">戰鬥陀螺戰機紀錄</h1>
                 </div>
                 <div id="user-status-area" class="text-right"></div>
             </div>
@@ -26,7 +26,7 @@
 
         <div id="auth-section" class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl space-y-4">
             <div class="text-center space-y-1">
-                <h3 class="text-md font-bold text-slate-200">🏆 戰鬥陀螺比分紀錄</h3>
+                <h3 class="text-md font-bold text-slate-200">🏆 歡迎來到戰鬥陀螺戰機紀錄</h3>
                 <p class="text-xs text-slate-400">註冊專屬帳號，即可擁有個人化大數據分析與隨身雲端筆記。</p>
             </div>
             
@@ -59,14 +59,28 @@
         </div>
 
         <div id="main-app-section" class="hidden space-y-4">
-            <div class="grid grid-cols-2 gap-2">
-                <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 text-center">
-                    <div class="text-[10px] text-slate-400 font-bold">您的總參賽場次</div>
-                    <div id="stat-total" class="text-sm font-black text-indigo-400 mt-1">0 場</div>
+            <div class="grid grid-cols-3 gap-2">
+                <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700 text-center">
+                    <div class="text-[10px] text-slate-400 font-bold">總參賽</div>
+                    <div id="stat-total" class="text-xs font-black text-indigo-400 mt-1">0 場</div>
                 </div>
-                <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 text-center">
-                    <div class="text-[10px] text-slate-400 font-bold">全站最愛用陀螺熱門榜</div>
-                    <div id="stat-top-beys" class="text-xs font-bold text-amber-400 mt-1 truncate">計算中...</div>
+                <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700 text-center">
+                    <div class="text-[10px] text-slate-400 font-bold">累計對戰</div>
+                    <div id="stat-stages" class="text-xs font-black text-emerald-400 mt-1">0 輪</div>
+                </div>
+                <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700 text-center">
+                    <div class="text-[10px] text-slate-400 font-bold">累計花費</div>
+                    <div id="stat-expenses" class="text-xs font-black text-rose-400 mt-1">$0</div>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700 text-center">
+                    <div class="text-[10px] text-slate-400 font-bold">🏆 個人最佳成績</div>
+                    <div id="stat-best" class="text-xs font-bold text-amber-400 mt-1 truncate">暫無數據</div>
+                </div>
+                <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700 text-center">
+                    <div class="text-[10px] text-slate-400 font-bold">🔥 愛用陀螺 (實際出場)</div>
+                    <div id="stat-top-beys" class="text-xs font-bold text-blue-400 mt-1 truncate">計算中...</div>
                 </div>
             </div>
 
@@ -83,7 +97,7 @@
                             <input type="text" id="tournament" placeholder="例如：金典 G3 店賽" required class="w-full p-2 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none h-9">
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-2">
+                    <div class="grid grid-cols-3 gap-2">
                         <div>
                             <label class="block text-[11px] font-bold text-slate-400 mb-1">總人數</label>
                             <input type="text" id="players" placeholder="64人" class="w-full p-2 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none h-9">
@@ -91,6 +105,10 @@
                         <div>
                             <label class="block text-[11px] font-bold text-slate-400 mb-1">報名費 ($)</label>
                             <input type="number" id="fee" placeholder="0" class="w-full p-2 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none h-9">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 mb-1">參賽獎品</label>
+                            <input type="text" id="prize" placeholder="基本包/貼紙" class="w-full p-2 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none h-9">
                         </div>
                     </div>
 
@@ -115,7 +133,7 @@
             <div class="space-y-2">
                 <div class="flex flex-col gap-1.5 sm:flex-row sm:justify-between sm:items-center">
                     <h2 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">🔍 您的歷史戰績紀錄</h2>
-                    <input type="text" id="search-records" placeholder="搜尋比賽、對手、陀螺或日期 (如: 2026-07)" class="w-full sm:w-64 p-2 text-[11px] bg-slate-800 border border-slate-700 rounded-lg text-slate-200 outline-none h-8">
+                    <input type="text" id="search-records" placeholder="搜尋比賽、對手、陀螺、日期或獎品" class="w-full sm:w-64 p-2 text-[11px] bg-slate-800 border border-slate-700 rounded-lg text-slate-200 outline-none h-8">
                 </div>
                 <div id="records-list" class="space-y-2"></div>
             </div>
@@ -124,7 +142,7 @@
 
     <script>
         const url_config = "https://erfhyiptjwodutdwxitb.supabase.co";
-        const key_config = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyZmh5aXB0andvZHV0ZHd4aXRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MTE0MTUsImV4cCI6MjA5OTA4NzQxNX0.8xT-uHvCyw61JZ4qDihz5j2F0sd6ROWpr_1kt2ELgEc";
+        const key_config = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyZmh5aXB0andvZHV0ZHd4aXRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MTE0MTUsImV4cCI6MjA5OTE4NzQxNX0.8xT-uHvCyw61JZ4qDihz5j2F0sd6ROWpr_1kt2ELgEc";
 
         const gyroSupabase = window.supabase.createClient(url_config, key_config);
         let currentUser = null;
@@ -411,6 +429,9 @@
                 });
             });
 
+            // 讀取新增的參賽獎品欄位內容
+            const prizeText = document.getElementById('prize').value.trim();
+
             const newMatch = {
                 user_id: currentUser.id,
                 date: document.getElementById('date').value,
@@ -418,7 +439,9 @@
                 players: document.getElementById('players').value,
                 fee: Number(document.getElementById('fee').value) || 0,
                 my_setups: mySetupsData,
-                stages: stagesData
+                stages: stagesData,
+                // 為相容性設計，將自訂輸入儲存在備用或既有欄位中（或直接寫入擴充屬性）
+                notes: prizeText 
             };
 
             const { error } = await gyroSupabase.from('matches_v2').insert([newMatch]);
@@ -440,34 +463,70 @@
         });
 
         function renderDashboardAndList() {
+            // 1. 基礎計數統計
             document.getElementById('stat-total').innerText = `${myMatches.length} 場`;
-            const beyCounts = {};
+            
+            let totalStages = 0;
+            let totalExpenses = 0;
+            const actualBeyCounts = {}; // 改為實際出場計算的陀螺計數器
+            let highestStageCount = 0;
+            let bestTitle = "暫無數據";
+
             myMatches.forEach(m => {
-                m.my_setups?.forEach(b => { if(b) beyCounts[b] = (beyCounts[b] || 0) + 1 });
+                totalExpenses += (Number(m.fee) || 0);
+                if(m.stages) {
+                    totalStages += m.stages.length;
+                    
+                    // 尋找最佳成績與最高晉級輪數
+                    if(m.stages.length > highestStageCount) {
+                        highestStageCount = m.stages.length;
+                    }
+                    m.stages.forEach(s => {
+                        // 檢查各輪名稱是否包含冠軍、亞軍等關鍵字
+                        if(s.stageName?.includes("冠軍") || s.stageName?.includes("決賽")) {
+                            if(s.stageResult === 'WIN') bestTitle = "🏆 大賽冠軍";
+                            else if(bestTitle !== "🏆 大賽冠軍") bestTitle = "🥈 大賽亞軍";
+                        } else if(s.stageName?.includes("四強") || s.stageName?.includes("準決賽")) {
+                            if(bestTitle !== "🏆 大賽冠軍" && bestTitle !== "🥈 大賽亞軍") bestTitle = "🥉 大賽季/殿軍";
+                        }
+                        
+                        // 精準統計局戰（Round）實際出場的陀螺
+                        s.rounds?.forEach(r => {
+                            if(r.myBey && r.myBey !== "未指定" && !r.myBey.startsWith("我方陀螺")) {
+                                actualBeyCounts[r.myBey] = (actualBeyCounts[r.myBey] || 0) + 1;
+                            }
+                        });
+                    });
+                }
             });
-            const topBey = Object.entries(beyCounts).sort((a,b)=>b[1]-a[1])[0];
-            document.getElementById('stat-top-beys').innerText = topBey ? `${topBey[0]} (${topBey[1]}次)` : '暫無數據';
+
+            // 處理個人最佳成績頭銜
+            if(bestTitle === "暫無數據" && highestStageCount > 0) {
+                bestTitle = `前進至第 ${highestStageCount} 輪`;
+            }
+
+            document.getElementById('stat-stages').innerText = `${totalStages} 輪`;
+            document.getElementById('stat-expenses').innerText = `$${totalExpenses}`;
+            document.getElementById('stat-best').innerText = bestTitle;
+
+            // 依據實際出場次數排序的愛用陀螺榜
+            const topBey = Object.entries(actualBeyCounts).sort((a,b) => b[1] - a[1])[0];
+            document.getElementById('stat-top-beys').innerText = topBey ? `${topBey[0]} (${topBey[1]}次)` : '暫無實際出場數據';
 
             const listContainer = document.getElementById('records-list');
             listContainer.innerHTML = '';
             
-            // 獲取搜尋關鍵字
             const keyword = document.getElementById('search-records').value.trim().toLowerCase();
 
-            // 進行戰績篩選 (新增支援日期欄位搜尋)
             const filteredMatches = myMatches.filter(m => {
                 if (!keyword) return true;
                 
-                // 1. 檢查比賽日期 (支援各種日期格式包含年、月、日的部分匹配)
                 if (m.date && m.date.toLowerCase().includes(keyword)) return true;
-
-                // 2. 檢查比賽名稱
                 if (m.tournament?.toLowerCase().includes(keyword)) return true;
-                
-                // 3. 檢查我方陣容
+                // 支援搜尋備註裡的參賽獎品關鍵字
+                if (m.notes && m.notes.toLowerCase().includes(keyword)) return true; 
                 if (m.my_setups?.some(b => b.toLowerCase().includes(keyword))) return true;
                 
-                // 4. 檢查各輪對手名字與陣容、局對戰資訊
                 if (m.stages?.some(s => {
                     if (s.oppName?.toLowerCase().includes(keyword)) return true;
                     if (s.stageName?.toLowerCase().includes(keyword)) return true;
@@ -480,7 +539,7 @@
             });
 
             if(filteredMatches.length === 0) {
-                listContainer.innerHTML = `<div class="text-center p-4 text-xs text-slate-500">${myMatches.length === 0 ? '目前您的雲端庫還沒有戰績紀錄喔！' : '找不到符合關鍵字或日期的歷史紀錄。'}</div>`;
+                listContainer.innerHTML = `<div class="text-center p-4 text-xs text-slate-500">${myMatches.length === 0 ? '目前您的雲端庫還沒有戰績紀錄喔！' : '找不到符合關鍵字、日期或獎品的歷史紀錄。'}</div>`;
                 return;
             }
 
@@ -523,10 +582,15 @@
                     `;
                 });
 
+                const prizeDisplay = m.notes ? `<span class="bg-slate-700 text-amber-300 text-[10px] px-1.5 py-0.5 rounded">🎁 獎品: ${m.notes}</span>` : '';
+
                 card.innerHTML = `
                     <div class="flex justify-between items-center text-[10px] text-slate-400">
                         <span>📅 ${m.date} | 👥 ${m.players || '未知'}</span>
-                        <span class="text-indigo-400 font-bold">$${m.fee}</span>
+                        <div class="flex items-center gap-1.5">
+                            ${prizeDisplay}
+                            <span class="text-indigo-400 font-bold">$${m.fee}</span>
+                        </div>
                     </div>
                     <h4 class="font-black text-slate-200 text-sm">${m.tournament}</h4>
                     <div class="text-slate-400 text-[11px]">我方登記陣容: <span class="text-blue-400">${m.my_setups?.join(', ')}</span></div>
