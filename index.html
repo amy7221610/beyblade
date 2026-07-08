@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>戰鬥陀螺戰績社群網</title>
+    <title>戰鬥陀螺大賽級戰績社群網</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -18,14 +18,12 @@
         <header class="mb-4 border-b border-slate-700 pb-3 flex flex-col gap-2">
             <div class="flex justify-between items-center">
                 <div>
-                    <h1 class="text-xl font-black text-indigo-400 tracking-wider">🌪️ 陀螺戰績社群網</h1>
+                    <h1 class="text-xl font-black text-indigo-400 tracking-wider">🌪️ 陀螺大賽戰績社群網</h1>
                     <p class="text-slate-400 text-xs mt-0.5">多用戶雲端版 • 支援 Google 一鍵登入</p>
                 </div>
                 <div id="user-status-area" class="text-right"></div>
             </div>
         </header>
-
-     
 
         <div id="auth-section" class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl space-y-4 relative z-20">
             <div class="text-center space-y-1">
@@ -122,187 +120,4 @@
         const url_config = "https://erfhyiptjwodutdwxitb.supabase.co";
         const key_config = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyZmh5aXB0andvZHV0ZHd4aXRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MTE0MTUsImV4cCI6MjA5OTE4NzQxNX0.8xT-uHvCyw61JZ4qDihz5j2F0sd6ROWpr_1kt2ELgEc";
 
-        const gyroSupabase = window.supabase.createClient(url_config, key_config);
-        let currentUser = null;
-        let myMatches = [];
-
-        // 監聽登入狀態
-        gyroSupabase.auth.onAuthStateChange((event, session) => {
-            if (session) {
-                currentUser = session.user;
-                document.getElementById('auth-section').classList.add('hidden');
-                document.getElementById('main-app-section').classList.remove('hidden');
-                const userName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
-                document.getElementById('user-status-area').innerHTML = `
-                    <span class="text-xs font-bold text-emerald-400 block">👋 嗨，${userName}</span>
-                    <button id="btn-logout" class="text-[10px] text-slate-500 underline hover:text-rose-400">登出帳號</button>
-                `;
-                
-                // 登出按鈕事件綁定
-                document.getElementById('btn-logout').addEventListener('click', async () => {
-                    await gyroSupabase.auth.signOut();
-                });
-
-                fetchUserMatches();
-            } else {
-                currentUser = null;
-                document.getElementById('auth-section').classList.remove('hidden');
-                document.getElementById('main-app-section').classList.add('hidden');
-                document.getElementById('user-status-area').innerHTML = `<span class="text-xs font-bold text-rose-400">🔴 未登入</span>`;
-            }
-        });
-
-        // 🌟 採用最穩固的實體監聽法 (EventListener)，徹底取代舊的 HTML onclick
-        document.getElementById('btn-test').addEventListener('click', () => {
-            alert('系統測試正常！按鈕功能有通喔！');
-        });
-
-        document.getElementById('btn-google').addEventListener('click', async () => {
-            const { data, error } = await gyroSupabase.auth.signInWithOAuth({
-                provider: 'google',
-                options: { redirectTo: window.location.origin }
-            });
-            if (error) alert('Google 登入失敗: ' + error.message);
-        });
-
-        document.getElementById('btn-signup').addEventListener('click', async () => {
-            const email = document.getElementById('auth-email').value;
-            const password = document.getElementById('auth-password').value;
-            if(!email || !password) return alert('信箱與密碼都要填寫喔！');
-            const { data, error } = await gyroSupabase.auth.signUp({ email, password });
-            if (error) alert('註冊失敗: ' + error.message);
-            else alert('註冊成功！系統已自動幫您登入。');
-        });
-
-        document.getElementById('btn-login').addEventListener('click', async () => {
-            const email = document.getElementById('auth-email').value;
-            const password = document.getElementById('auth-password').value;
-            const { data, error } = await gyroSupabase.auth.signInWithPassword({ email, password });
-            if (error) alert('登入失敗: ' + error.message);
-        });
-
-        document.getElementById('btn-add-stage').addEventListener('click', () => {
-            createStageBlock();
-        });
-
-        async function fetchUserMatches() {
-            const { data, error } = await gyroSupabase
-                .from('matches_v2')
-                .select('*')
-                .order('date', { ascending: false });
-            if (!error && data) {
-                myMatches = data;
-                renderDashboardAndList();
-            }
-        }
-
-        function createStageBlock() {
-            const container = document.getElementById('stages-container');
-            const stageIndex = container.children.length + 1;
-            const block = document.createElement('div');
-            block.className = 'stage-block bg-slate-900/60 p-3 rounded-xl border border-slate-700/80 space-y-2';
-            block.innerHTML = `
-                <div class="flex justify-between items-center border-b border-slate-700 pb-1">
-                    <input type="text" class="stage-name-input bg-slate-800 border border-slate-600 rounded text-xs p-1 font-bold text-slate-100 h-7 w-1/2" placeholder="例如：預賽第一輪" required>
-                    <span class="text-[11px] font-bold text-slate-400">此輪結果: 
-                        <select class="stage-result bg-slate-900 border border-slate-700 rounded p-0.5 text-emerald-400 text-xs">
-                            <option value="WIN">🏆 獲勝/晉級</option>
-                            <option value="LOSE">❌ 戰敗/淘汰</option>
-                        </select>
-                    </span>
-                </div>
-                <div class="grid grid-cols-2 gap-2 text-xs">
-                    <input type="text" class="opp-name bg-slate-800 border border-slate-700 p-1 rounded" placeholder="對手名字" required>
-                    <input type="text" class="opp-b1 bg-slate-800 border border-slate-700 p-1 rounded" placeholder="對手使用陀螺 (選填)">
-                </div>
-            `;
-            container.appendChild(block);
-            if(stageIndex === 1) block.querySelector('.stage-name-input').value = "預賽第一輪";
-        }
-
-        document.getElementById('match-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const stagesData = [];
-            document.querySelectorAll('.stage-block').forEach(block => {
-                stagesData.push({
-                    stageName: block.querySelector('.stage-name-input').value,
-                    oppName: block.querySelector('.opp-name').value,
-                    oppSetups: [block.querySelector('.opp-b1').value].filter(Boolean),
-                    stageResult: block.querySelector('.stage-result').value,
-                    rounds: []
-                });
-            });
-
-            const newMatch = {
-                user_id: currentUser.id,
-                date: document.getElementById('date').value,
-                tournament: document.getElementById('tournament').value,
-                players: document.getElementById('players').value,
-                fee: Number(document.getElementById('fee').value) || 0,
-                my_setups: [
-                    document.getElementById('my-b1').value,
-                    document.getElementById('my-b2').value,
-                    document.getElementById('my-b3').value
-                ].filter(Boolean),
-                stages: stagesData
-            };
-
-            const { error } = await gyroSupabase.from('matches_v2').insert([newMatch]);
-            if (error) {
-                alert('上傳雲端失敗: ' + error.message);
-            } else {
-                alert('戰績成功寫入您的公開雲端庫！');
-                document.getElementById('match-form').reset();
-                document.getElementById('stages-container').innerHTML = '';
-                createStageBlock();
-                fetchUserMatches();
-            }
-        });
-
-        function renderDashboardAndList() {
-            document.getElementById('stat-total').innerText = `${myMatches.length} 場`;
-            const beyCounts = {};
-            myMatches.forEach(m => {
-                m.my_setups?.forEach(b => { if(b) beyCounts[b] = (beyCounts[b] || 0) + 1 });
-            });
-            const topBey = Object.entries(beyCounts).sort((a,b)=>b[1]-a[1])[0];
-            document.getElementById('stat-top-beys').innerText = topBey ? `${topBey[0]} (${topBey[1]}次)` : '暫無數據';
-
-            const listContainer = document.getElementById('records-list');
-            listContainer.innerHTML = '';
-            if(myMatches.length === 0) {
-                listContainer.innerHTML = `<div class="text-center p-4 text-xs text-slate-500">目前您的雲端庫還沒有戰績紀錄喔！</div>`;
-                return;
-            }
-
-            myMatches.forEach(m => {
-                const card = document.createElement('div');
-                card.className = 'bg-slate-800 p-3 rounded-xl border border-slate-700 text-xs';
-                let stagesHtml = '';
-                m.stages?.forEach(s => {
-                    stagesHtml += `
-                        <div class="mt-1 bg-slate-900/40 p-1.5 rounded flex justify-between">
-                            <span class="text-slate-300 font-bold">${s.stageName} (vs ${s.oppName})</span>
-                            <span class="${s.stageResult === 'WIN' ? 'text-emerald-400':'text-rose-400'}">${s.stageResult === 'WIN' ? '🏆 晉級':'❌ 淘汰'}</span>
-                        </div>
-                    `;
-                });
-
-                card.innerHTML = `
-                    <div class="flex justify-between items-center text-[10px] text-slate-400 mb-1">
-                        <span>📅 ${m.date} | 👥 ${m.players || '未知'}</span>
-                        <span class="text-indigo-400 font-bold">$${m.fee}</span>
-                    </div>
-                    <h4 class="font-black text-slate-200 text-sm mb-1">${m.tournament}</h4>
-                    <div class="text-slate-400 text-[11px]">使用陣容: <span class="text-blue-400">${m.my_setups?.join(', ')}</span></div>
-                    ${stagesHtml}
-                `;
-                listContainer.appendChild(card);
-            });
-        }
-
-        document.getElementById('date').value = new Date().toISOString().split('T')[0];
-        createStageBlock();
-    </script>
-</body>
-</html>
+        const
