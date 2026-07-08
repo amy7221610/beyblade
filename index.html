@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>戰鬥陀螺大賽級戰績</title>
+    <title>戰鬥陀螺戰績社群網</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 引入 Supabase 官方前端 SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -21,7 +21,7 @@
             <div class="flex justify-between items-center">
                 <div>
                     <h1 class="text-xl font-black text-indigo-400 tracking-wider">🌪️ 陀螺大賽戰績社群網</h1>
-                    <p class="text-slate-400 text-xs mt-0.5">多用戶雲端版 • 台灣陀螺生態大數據</p>
+                    <p class="text-slate-400 text-xs mt-0.5">多用戶雲端版 • 支援 Google 一鍵登入</p>
                 </div>
                 <div id="user-status-area" class="text-right">
                     <!-- 登入狀態會動態渲染在這邊 -->
@@ -32,9 +32,24 @@
         <!-- 區塊一：未登入前的歡迎與登入註冊入口 -->
         <div id="auth-section" class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl space-y-4">
             <div class="text-center space-y-1">
-                <h3 class="text-md font-bold text-slate-200">🏆 歡迎來到全台陀螺選手戰績庫</h3>
+                <h3 class="text-md font-bold text-slate-200">🏆 歡迎來到陀螺選手戰績庫</h3>
                 <p class="text-xs text-slate-400">註冊專屬帳號，即可擁有個人化大數據分析與隨身雲端筆記。</p>
             </div>
+            
+            <!-- 🌟 新增：Google 一鍵登入按鈕 -->
+            <button onclick="loginWithGoogle()" class="w-full bg-white hover:bg-slate-100 text-slate-900 font-bold text-xs py-2.5 rounded-lg transition h-11 flex items-center justify-center gap-2 border border-slate-300 shadow-sm">
+                <svg class="w-4 h-4" viewBox="0 0 24 24">
+                    <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.866-3.577-7.866-8s3.536-8 7.866-8c2.46 0 4.105 1.025 5.047 1.926l3.327-3.2A12.986 12.986 0 0 0 12.24 0c-7.18 0-13 5.82-13 13s5.82 13 13 13c7.5 0 12.48-5.26 12.48-12.69 0-.85-.09-1.5-.2-2.025H12.24z"/>
+                </svg>
+                使用 Google 帳號一鍵登入 / 註冊
+            </button>
+
+            <div class="relative flex py-1 items-center">
+                <div class="flex-grow border-t border-slate-700"></div>
+                <span class="flex-shrink mx-3 text-slate-500 text-[10px] font-bold">或使用傳統信箱</span>
+                <div class="flex-grow border-t border-slate-700"></div>
+            </div>
+
             <div class="space-y-2">
                 <input type="email" id="auth-email" placeholder="輸入電子信箱 Email" class="w-full p-2.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none h-10">
                 <input type="password" id="auth-password" placeholder="密碼 (至少 6 位數)" class="w-full p-2.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none h-10">
@@ -116,9 +131,10 @@
         // ==========================================
         // ⚠️ 請在此處填入你註冊的 Supabase 連線金鑰
         // ==========================================
-        const SUPABASE_URL = "[請貼上您的Supabase_Project_URL](https://erfhyiptjwodutdwxitb.supabase.co
-)";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyZmh5aXB0andvZHV0ZHd4aXRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MTE0MTUsImV4cCI6MjA5OTA4NzQxNX0.8xT-uHvCyw61JZ4qDihz5j2F0sd6ROWpr_1kt2ELgEc";
+        const SUPABASE_URL = "https://erfhyiptjwodutdwxitb.supabase.co
+";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyZmh5aXB0andvZHV0ZHd4aXRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MTE0MTUsImV4cCI6MjA5OTA4NzQxNX0.8xT-uHvCyw61JZ4qDihz5j2F0sd6ROWpr_1kt2ELgEc
+";
 
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let currentUser = null;
@@ -130,8 +146,11 @@
                 currentUser = session.user;
                 document.getElementById('auth-section').classList.add('hidden');
                 document.getElementById('main-app-section').classList.remove('hidden');
+                
+                // 取得使用者顯示名稱或 Email
+                const userName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
                 document.getElementById('user-status-area').innerHTML = `
-                    <span class="text-xs font-bold text-emerald-400 block">🟢 已登入</span>
+                    <span class="text-xs font-bold text-emerald-400 block">👋 嗨，${userName}</span>
                     <button onclick="handleLogOut()" class="text-[10px] text-slate-500 underline hover:text-rose-400">登出帳號</button>
                 `;
                 fetchUserMatches();
@@ -143,7 +162,18 @@
             }
         });
 
-        // 註冊帳號
+        // 🌟 新增：觸發 Google 一鍵登入
+        async function loginWithGoogle() {
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.origin // 登入成功後跳轉回目前網站網址
+                }
+            });
+            if (error) alert('Google 登入失敗: ' + error.message);
+        }
+
+        // 註冊帳號 (傳統 Email)
         async function handleSignUp() {
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value;
@@ -154,7 +184,7 @@
             else alert('註冊成功！系統已自動幫您登入。');
         }
 
-        // 登入帳號
+        // 登入帳號 (傳統 Email)
         async function handleLogin() {
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value;
@@ -218,12 +248,12 @@
                     oppName: block.querySelector('.opp-name').value,
                     oppSetups: [block.querySelector('.opp-b1').value].filter(Boolean),
                     stageResult: block.querySelector('.stage-result').value,
-                    rounds: [] // 基礎結構
+                    rounds: []
                 });
             });
 
             const newMatch = {
-                user_id: currentUser.id, // 鎖定目前使用者的身份證
+                user_id: currentUser.id,
                 date: document.getElementById('date').value,
                 tournament: document.getElementById('tournament').value,
                 players: document.getElementById('players').value,
@@ -252,7 +282,6 @@
         function renderDashboardAndList() {
             document.getElementById('stat-total').innerText = `${myMatches.length} 場`;
             
-            // 計算社群常出戰陀螺 (簡單統計範例)
             const beyCounts = {};
             myMatches.forEach(m => {
                 m.my_setups?.forEach(b => { if(b) beyCounts[b] = (beyCounts[b] || 0) + 1 });
@@ -260,7 +289,6 @@
             const topBey = Object.entries(beyCounts).sort((a,b)=>b[1]-a[1])[0];
             document.getElementById('stat-top-beys').innerText = topBey ? `${topBey[0]} (${topBey[1]}次)` : '暫無數據';
 
-            // 渲染列表
             const listContainer = document.getElementById('records-list');
             listContainer.innerHTML = '';
             
@@ -296,7 +324,6 @@
             });
         }
 
-        // 預設載入第一輪
         document.getElementById('date').value = new Date().toISOString().split('T')[0];
         createStageBlock();
     </script>
