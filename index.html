@@ -200,45 +200,6 @@
             if (error) alert('登入失敗: ' + error.message);
         });
 
-        // 檔案批量匯入
-        document.getElementById('upload-json-file').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            if (!currentUser) return alert('請先登入帳號再進行匯入功能！');
-
-            const reader = new FileReader();
-            reader.onload = async function(evt) {
-                try {
-                    const rawData = JSON.parse(evt.target.result);
-                    if (!Array.isArray(rawData)) {
-                        throw new Error('戰績備份格式錯誤，最外層必須是陣列 []');
-                    }
-
-                    const finalDataToInsert = rawData.map(match => ({
-                        user_id: currentUser.id,
-                        date: match.date || new Date().toISOString().split('T')[0],
-                        tournament: match.tournament || '未命名賽事',
-                        players: String(match.players || ''),
-                        fee: Number(match.fee) || 0,
-                        my_setups: match.my_setups || match.mySetups || [],
-                        stages: match.stages || []
-                    }));
-
-                    const { error } = await gyroSupabase.from('matches_v2').insert(finalDataToInsert);
-
-                    if (error) {
-                        alert('同步雲端失敗：' + error.message);
-                    } else {
-                        alert(`🎉 恭喜！已成功匯入 ${finalDataToInsert.length} 筆歷史戰績到您的雲端帳號中！`);
-                        fetchUserMatches();
-                    }
-                } catch (err) {
-                    alert('讀取失敗，請確認檔案內容是正確格式的 JSON：' + err.message);
-                }
-                e.target.value = '';
-            };
-            reader.readAsText(file);
-        });
 
         document.getElementById('btn-add-my-bey').addEventListener('click', () => {
             addMyBeyInputField('');
