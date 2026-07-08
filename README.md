@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>戰鬥陀螺大賽級戰績社群網</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Supabase 官方前端 SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        input, select, button { -webkit-tap-highlight-color: transparent; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-slate-900 min-h-screen text-slate-100 font-sans antialiased pb-12">
+
+    <div class="container mx-auto px-3 py-4 max-w-xl">
+        <!-- 頂部導覽區與會員狀態 -->
+        <header class="mb-4 border-b border-slate-700 pb-3 flex flex-col gap-2">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-xl font-black text-indigo-400 tracking-wider">🌪️ 陀螺大賽戰績社群網</h1>
+                    <p class="text-slate-400 text-xs mt-0.5">多用戶雲端版 • 台灣陀螺生態大數據</p>
+                </div>
+                <div id="user-status-area" class="text-right">
+                    <!-- 登入狀態會動態渲染在這邊 -->
+                </div>
+            </div>
+        </header>
+
+        <!-- 區塊一：未登入前的歡迎與登入註冊入口 -->
+        <div id="auth-section" class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-xl space-y-4">
+            <div class="text-center space-y-1">
+                <h3 class="text-md font-bold text-slate-200">🏆 歡迎來到全台陀螺選手戰績庫</h3>
+                <p class="text-xs text-slate-400">註冊專屬帳號，即可擁有個人化大數據分析與隨身雲端筆記。</p>
+            </div>
+            <div class="space-y-2">
+                <input type="email" id="auth-email" placeholder="輸入電子信箱 Email" class="w-full p-2.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none h-10">
+                <input type="password" id="auth-password" placeholder="密碼 (至少 6 位數)" class="w-full p-2.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none h-10">
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                    <button onclick="handleLogin()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2.5 rounded-lg transition h-10">
+                        🔑 登入帳號
+                    </button>
+                    <button onclick="handleSignUp()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold py-2.5 rounded-lg transition border border-slate-600 h-10">
+                        📝 註冊新帳號
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 區塊二：登入後才開啟的完整大眾版功能 -->
+        <div id="main-app-section" class="hidden space-y-4">
+            
+            <!-- 數據大數據小看板 -->
+            <div class="grid grid-cols-2 gap-2">
+                <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 text-center">
+                    <div class="text-[10px] text-slate-400 font-bold">您的總參賽場次</div>
+                    <div id="stat-total" class="text-sm font-black text-indigo-400 mt-1">0 場</div>
+                </div>
+                <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 text-center">
+                    <div class="text-[10px] text-slate-400 font-bold">全站最愛用陀螺熱門榜</div>
+                    <div id="stat-top-beys" class="text-xs font-bold text-amber-400 mt-1 truncate">計算中...</div>
+                </div>
+            </div>
+
+            <!-- 輸入表單 -->
+            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-xl">
+                <h2 id="form-title" class="text-sm font-extrabold text-slate-200 mb-3 border-b border-slate-700 pb-2">📝 登錄新賽事</h2>
+                <form id="match-form" class="space-y-3.5">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 mb-1">比賽日期</label>
+                            <input type="date" id="date" required class="w-full p-2 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none h-9">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 mb-1">比賽名稱</label>
+                            <input type="text" id="tournament" placeholder="例如：金典 G3 店賽" required class="w-full p-2 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none h-9">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 mb-1">總人數</label>
+                            <input type="text" id="players" placeholder="64人" class="w-full p-2 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none h-9">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 mb-1">報名費 ($)</label>
+                            <input type="number" id="fee" placeholder="0" class="w-full p-2 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 outline-none h-9">
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-950/40 p-2 rounded-xl border border-blue-900/40 space-y-1">
+                        <span class="text-[11px] font-black text-blue-400 block">🛡️ 我方此戰登記陀螺庫</span>
+                        <div class="grid grid-cols-3 gap-1">
+                            <input type="text" id="my-b1" placeholder="陀螺1" required class="w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-center h-8">
+                            <input type="text" id="my-b2" placeholder="陀螺2" class="w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-center h-8">
+                            <input type="text" id="my-b3" placeholder="陀螺3" class="w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-center h-8">
+                        </div>
+                    </div>
+
+                    <div id="stages-container" class="space-y-3"></div>
+                    <button type="button" onclick="createStageBlock()" class="w-full py-2 bg-slate-700 text-emerald-400 text-xs font-bold rounded-lg border border-dashed border-emerald-500/40 h-9">+ 新增下一輪賽事</button>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-lg text-xs h-11 tracking-wider">💾 儲存至雲端個人戰績庫</button>
+                </form>
+            </div>
+
+            <!-- 歷史列表 -->
+            <div class="space-y-2">
+                <h2 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">🔍 您的歷史戰績紀錄</h2>
+                <div id="records-list" class="space-y-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // ⚠️ 請在此處填入你註冊的 Supabase 連線金鑰
+        // ==========================================
+        const SUPABASE_URL = "[請貼上您的Supabase_Project_URL](https://erfhyiptjwodutdwxitb.supabase.co
+)";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyZmh5aXB0andvZHV0ZHd4aXRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MTE0MTUsImV4cCI6MjA5OTA4NzQxNX0.8xT-uHvCyw61JZ4qDihz5j2F0sd6ROWpr_1kt2ELgEc";
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let currentUser = null;
+        let myMatches = [];
+
+        // 初始化與會員狀態監聽
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (session) {
+                currentUser = session.user;
+                document.getElementById('auth-section').classList.add('hidden');
+                document.getElementById('main-app-section').classList.remove('hidden');
+                document.getElementById('user-status-area').innerHTML = `
+                    <span class="text-xs font-bold text-emerald-400 block">🟢 已登入</span>
+                    <button onclick="handleLogOut()" class="text-[10px] text-slate-500 underline hover:text-rose-400">登出帳號</button>
+                `;
+                fetchUserMatches();
+            } else {
+                currentUser = null;
+                document.getElementById('auth-section').classList.remove('hidden');
+                document.getElementById('main-app-section').classList.add('hidden');
+                document.getElementById('user-status-area').innerHTML = `<span class="text-xs font-bold text-rose-400">🔴 未登入</span>`;
+            }
+        });
+
+        // 註冊帳號
+        async function handleSignUp() {
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            if(!email || !password) return alert('信箱與密碼都要填寫喔！');
+            
+            const { data, error } = await supabase.auth.signUp({ email, password });
+            if (error) alert('註冊失敗: ' + error.message);
+            else alert('註冊成功！系統已自動幫您登入。');
+        }
+
+        // 登入帳號
+        async function handleLogin() {
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) alert('登入失敗: ' + error.message);
+        }
+
+        // 登出
+        async function handleLogOut() {
+            await supabase.auth.signOut();
+        }
+
+        // 抓取當前登入選手的個人雲端戰績
+        async function fetchUserMatches() {
+            const { data, error } = await supabase
+                .from('matches_v2')
+                .select('*')
+                .order('date', { ascending: false });
+
+            if (error) {
+                console.error(error);
+            } else {
+                myMatches = data;
+                renderDashboardAndList();
+            }
+        }
+
+        // 建立輸入輪次區塊
+        function createStageBlock(savedData = null) {
+            const container = document.getElementById('stages-container');
+            const stageIndex = container.children.length + 1;
+            const block = document.createElement('div');
+            block.className = 'stage-block bg-slate-900/60 p-3 rounded-xl border border-slate-700/80 space-y-2';
+            block.innerHTML = `
+                <div class="flex justify-between items-center border-b border-slate-700 pb-1">
+                    <input type="text" class="stage-name-input bg-slate-800 border border-slate-600 rounded text-xs p-1 font-bold text-slate-100 h-7 w-1/2" placeholder="例如：預賽第一輪" required>
+                    <span class="text-[11px] font-bold text-slate-400">此輪結果: 
+                        <select class="stage-result bg-slate-900 border border-slate-700 rounded p-0.5 text-emerald-400 text-xs">
+                            <option value="WIN">🏆 獲勝/晉級</option>
+                            <option value="LOSE">❌ 戰敗/淘汰</option>
+                        </select>
+                    </span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <input type="text" class="opp-name bg-slate-800 border border-slate-700 p-1 rounded" placeholder="對手名字" required>
+                    <input type="text" class="opp-b1 bg-slate-800 border border-slate-700 p-1 rounded" placeholder="對手使用陀螺 (選填)">
+                </div>
+            `;
+            container.appendChild(block);
+            if(!savedData && stageIndex === 1) block.querySelector('.stage-name-input').value = "預賽第一輪";
+        }
+
+        // 儲存表單資料到雲端
+        document.getElementById('match-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const stagesData = [];
+            document.querySelectorAll('.stage-block').forEach(block => {
+                stagesData.push({
+                    stageName: block.querySelector('.stage-name-input').value,
+                    oppName: block.querySelector('.opp-name').value,
+                    oppSetups: [block.querySelector('.opp-b1').value].filter(Boolean),
+                    stageResult: block.querySelector('.stage-result').value,
+                    rounds: [] // 基礎結構
+                });
+            });
+
+            const newMatch = {
+                user_id: currentUser.id, // 鎖定目前使用者的身份證
+                date: document.getElementById('date').value,
+                tournament: document.getElementById('tournament').value,
+                players: document.getElementById('players').value,
+                fee: Number(document.getElementById('fee').value) || 0,
+                my_setups: [
+                    document.getElementById('my-b1').value,
+                    document.getElementById('my-b2').value,
+                    document.getElementById('my-b3').value
+                ].filter(Boolean),
+                stages: stagesData
+            };
+
+            const { error } = await supabase.from('matches_v2').insert([newMatch]);
+            if (error) {
+                alert('上傳雲端失敗: ' + error.message);
+            } else {
+                alert('戰績成功寫入您的公開雲端庫！');
+                document.getElementById('match-form').reset();
+                document.getElementById('stages-container').innerHTML = '';
+                createStageBlock();
+                fetchUserMatches();
+            }
+        });
+
+        // 渲染畫面與分析
+        function renderDashboardAndList() {
+            document.getElementById('stat-total').innerText = `${myMatches.length} 場`;
+            
+            // 計算社群常出戰陀螺 (簡單統計範例)
+            const beyCounts = {};
+            myMatches.forEach(m => {
+                m.my_setups?.forEach(b => { if(b) beyCounts[b] = (beyCounts[b] || 0) + 1 });
+            });
+            const topBey = Object.entries(beyCounts).sort((a,b)=>b[1]-a[1])[0];
+            document.getElementById('stat-top-beys').innerText = topBey ? `${topBey[0]} (${topBey[1]}次)` : '暫無數據';
+
+            // 渲染列表
+            const listContainer = document.getElementById('records-list');
+            listContainer.innerHTML = '';
+            
+            if(myMatches.length === 0) {
+                listContainer.innerHTML = `<div class="text-center p-4 text-xs text-slate-500">目前您的雲端庫還沒有戰績紀錄喔！</div>`;
+                return;
+            }
+
+            myMatches.forEach(m => {
+                const card = document.createElement('div');
+                card.className = 'bg-slate-800 p-3 rounded-xl border border-slate-700 text-xs';
+                
+                let stagesHtml = '';
+                m.stages?.forEach(s => {
+                    stagesHtml += `
+                        <div class="mt-1 bg-slate-900/40 p-1.5 rounded flex justify-between">
+                            <span class="text-slate-300 font-bold">${s.stageName} (vs ${s.oppName})</span>
+                            <span class="${s.stageResult === 'WIN' ? 'text-emerald-400':'text-rose-400'}">${s.stageResult === 'WIN' ? '🏆 晉級':'❌ 淘汰'}</span>
+                        </div>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-center text-[10px] text-slate-400 mb-1">
+                        <span>📅 ${m.date} | 👥 ${m.players || '未知'}</span>
+                        <span class="text-indigo-400 font-bold">$${m.fee}</span>
+                    </div>
+                    <h4 class="font-black text-slate-200 text-sm mb-1">${m.tournament}</h4>
+                    <div class="text-slate-400 text-[11px]">使用陣容: <span class="text-blue-400">${m.my_setups?.join(', ')}</span></div>
+                    ${stagesHtml}
+                `;
+                listContainer.appendChild(card);
+            });
+        }
+
+        // 預設載入第一輪
+        document.getElementById('date').value = new Date().toISOString().split('T')[0];
+        createStageBlock();
+    </script>
+</body>
+</html>
