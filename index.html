@@ -19,7 +19,6 @@
             <div class="flex justify-between items-center">
                 <div>
                     <h1 class="text-xl font-black text-indigo-400 tracking-wider">🌪️ 陀螺戰績社群網</h1>
-                    <p class="text-slate-400 text-xs mt-0.5">多用戶雲端版 • 支援 Google 一鍵登入</p>
                 </div>
                 <div id="user-status-area" class="text-right"></div>
             </div>
@@ -138,11 +137,9 @@
                     <span class="text-xs font-bold text-emerald-400 block">👋 嗨，${userName}</span>
                     <button id="btn-logout" class="text-[10px] text-slate-500 underline hover:text-rose-400">登出帳號</button>
                 `;
-                
                 document.getElementById('btn-logout').addEventListener('click', async () => {
                     await gyroSupabase.auth.signOut();
                 });
-
                 fetchUserMatches();
             } else {
                 currentUser = null;
@@ -152,14 +149,10 @@
             }
         });
 
-        // 登入按鈕事件
+        // 登入相關事件
         document.getElementById('btn-google').addEventListener('click', async () => {
-            await gyroSupabase.auth.signInWithOAuth({
-                provider: 'google',
-                options: { redirectTo: window.location.origin }
-            });
+            await gyroSupabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
         });
-
         document.getElementById('btn-signup').addEventListener('click', async () => {
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value;
@@ -168,7 +161,6 @@
             if (error) alert('註冊失敗: ' + error.message);
             else alert('註冊成功！系統已自動幫您登入。');
         });
-
         document.getElementById('btn-login').addEventListener('click', async () => {
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value;
@@ -191,35 +183,28 @@
         });
 
         async function fetchUserMatches() {
-            const { data, error } = await gyroSupabase
-                .from('matches_v2')
-                .select('*')
-                .order('date', { ascending: false });
+            const { data, error } = await gyroSupabase.from('matches_v2').select('*').order('date', { ascending: false });
             if (!error && data) {
                 myMatches = data;
                 renderDashboardAndList();
             }
         }
 
-        // 🛠️ 核心修改：每輪賽事區塊（包含對手 3 顆陀螺 + 分數挑選）
+        // 🛠️ 核心修改：建立包含招式與小局紀錄的每輪賽事區塊
         function createStageBlock() {
             const container = document.getElementById('stages-container');
-            const stageIndex = container.children.length + 1;
+            const stageIndex = container.children.length;
             const block = document.createElement('div');
             block.className = 'stage-block bg-slate-900/60 p-3 rounded-xl border border-slate-700/80 space-y-2.5';
+            
+            // 給予每一輪獨立的 ID 用於內部局數操作
+            block.id = `stage-idx-${stageIndex}`;
+
             block.innerHTML = `
                 <div class="flex justify-between items-center border-b border-slate-700 pb-1.5">
                     <input type="text" class="stage-name-input bg-slate-800 border border-slate-600 rounded text-xs p-1 font-bold text-slate-100 h-7 w-2/5" placeholder="例如：預賽第一輪" required>
-                    
-                    <div class="flex items-center gap-1 text-xs">
-                        <span class="text-slate-400 font-bold">比分:</span>
-                        <select class="score-me bg-slate-900 border border-slate-700 rounded p-0.5 text-indigo-400 font-bold text-center w-10">
-                            <option value="3">3</option><option value="2">2</option><option value="1">1</option><option value="0" selected>0</option><option value="4">4</option><option value="5">5</option>
-                        </select>
-                        <span class="text-slate-500 font-black">:</span>
-                        <select class="score-opp bg-slate-900 border border-slate-700 rounded p-0.5 text-rose-400 font-bold text-center w-10">
-                            <option value="3">3</option><option value="2">2</option><option value="1">1</option><option value="0" selected>0</option><option value="4">4</option><option value="5">5</option>
-                        </select>
+                    <div class="text-xs font-black">
+                        目前即時比分: <span class="score-summary-display text-indigo-400">0 - 0</span>
                     </div>
                 </div>
 
@@ -235,9 +220,72 @@
                         <input type="text" class="opp-b3 bg-slate-800 border border-slate-700 p-1.5 text-xs rounded text-center text-amber-300" placeholder="陀螺 3">
                     </div>
                 </div>
+
+                <div class="rounds-container space-y-1.5 pt-1">
+                    <div class="text-[10px] text-slate-400 font-bold flex justify-between items-center">
+                        <span>⚔️ 局數對戰招式細節</span>
+                        <button type="button" class="btn-add-round-row bg-slate-700 hover:bg-slate-600 text-emerald-400 px-1.5 py-0.5 rounded text-[10px]">+ 加一局</button>
+                    </div>
+                    <div class="rounds-rows-list space-y-1"></div>
+                </div>
             `;
             container.appendChild(block);
-            if(stageIndex === 1) block.querySelector('.stage-name-input').value = "預賽第一輪";
+            
+            if(stageIndex === 0) block.querySelector('.stage-name-input').value = "預賽第一輪";
+
+            // 綁定「加一局」按鈕點擊事件
+            block.querySelector('.btn-add-round-row').addEventListener('click', () => {
+                addRoundRow(block);
+            });
+
+            // 預設先自動加上第一局
+            addRoundRow(block);
+        }
+
+        // 動態新增一小局的招式下拉選單
+        function addRoundRow(stageBlock) {
+            const rowsList = stageBlock.querySelector('.rounds-rows-list');
+            const roundIdx = rowsList.children.length + 1;
+            const row = document.createElement('div');
+            row.className = 'round-row grid grid-cols-12 gap-1 items-center bg-slate-950/40 p-1 rounded border border-slate-800';
+            
+            row.innerHTML = `
+                <div class="col-span-2 text-[10px] text-slate-500 font-bold text-center">第 ${roundIdx} 局</div>
+                <div class="col-span-10 flex gap-1 items-center">
+                    <select class="round-finish-type w-full bg-slate-900 border border-slate-700 rounded text-[11px] p-1 text-slate-200">
+                        <option value="MY_SPIN">我方 持久/轉勝 (+1)</option>
+                        <option value="MY_OVER">我方 擊飛/動能 (+2)</option>
+                        <option value="MY_BURST">我方 極限/爆裂 (+3)</option>
+                        <option value="OPP_SPIN">對手 持久/轉勝 (+1)</option>
+                        <option value="OPP_OVER">對手 擊飛/動能 (+2)</option>
+                        <option value="OPP_BURST">對手 極限/爆裂 (+3)</option>
+                    </select>
+                </div>
+            `;
+            rowsList.appendChild(row);
+
+            // 只要下拉選單一改變，立即重新計算即時顯示的總分
+            row.querySelector('.round-finish-type').addEventListener('change', () => {
+                calculateStageScore(stageBlock);
+            });
+
+            calculateStageScore(stageBlock);
+        }
+
+        // 即時計算某一輪的得分總計
+        function calculateStageScore(stageBlock) {
+            let myTotal = 0;
+            let oppTotal = 0;
+            stageBlock.querySelectorAll('.round-finish-type').forEach(select => {
+                const val = select.value;
+                if (val === 'MY_SPIN') myTotal += 1;
+                if (val === 'MY_OVER') myTotal += 2;
+                if (val === 'MY_BURST') myTotal += 3;
+                if (val === 'OPP_SPIN') oppTotal += 1;
+                if (val === 'OPP_OVER') oppTotal += 2;
+                if (val === 'OPP_BURST') oppTotal += 3;
+            });
+            stageBlock.querySelector('.score-summary-display').innerText = `${myTotal} - ${oppTotal}`;
         }
 
         document.getElementById('match-form').addEventListener('submit', async (e) => {
@@ -250,13 +298,30 @@
 
             const stagesData = [];
             document.querySelectorAll('.stage-block').forEach(block => {
-                const sMe = parseInt(block.querySelector('.score-me').value) || 0;
-                const sOpp = parseInt(block.querySelector('.score-opp').value) || 0;
-                
-                // 從分數自動判斷晉級或淘汰
-                const calculatedResult = sMe >= sOpp ? 'WIN' : 'LOSE';
+                let myTotal = 0;
+                let oppTotal = 0;
+                const roundsDetails = [];
 
-                // 收集對手填寫的三顆陀螺
+                // 收集並計算每局招式
+                block.querySelectorAll('.round-finish-type').forEach(select => {
+                    const val = select.value;
+                    let points = 0;
+                    let winner = 'MY';
+                    let actionText = '';
+
+                    if (val === 'MY_SPIN') { myTotal += 1; points = 1; winner = 'MY'; actionText = '轉停'; }
+                    if (val === 'MY_OVER') { myTotal += 2; points = 2; winner = 'MY'; actionText = '擊飛'; }
+                    if (val === 'MY_OVER') { myTotal += 2; points = 2; winner = 'MY'; actionText = '爆裂'; }
+                    if (val === 'MY_BURST') { myTotal += 3; points = 3; winner = 'MY'; actionText = '極限'; }
+                    if (val === 'OPP_SPIN') { oppTotal += 1; points = 1; winner = 'OPP'; actionText = '轉停'; }
+                    if (val === 'OPP_OVER') { oppTotal += 2; points = 2; winner = 'OPP'; actionText = '擊飛'; }
+                    if (val === 'OPP_OVER') { oppTotal += 2; points = 2; winner = 'OPP'; actionText = '爆裂'; }
+                    if (val === 'OPP_BURST') { oppTotal += 3; points = 3; winner = 'OPP'; actionText = '極限'; }
+
+                    roundsDetails.push({ winner, actionText, points });
+                });
+
+                const calculatedResult = myTotal >= oppTotal ? 'WIN' : 'LOSE';
                 const oppSetupsData = [
                     block.querySelector('.opp-b1').value.trim(),
                     block.querySelector('.opp-b2').value.trim(),
@@ -268,7 +333,8 @@
                     oppName: block.querySelector('.opp-name').value,
                     oppSetups: oppSetupsData,
                     stageResult: calculatedResult,
-                    score: `${sMe}-${sOpp}` // 把比分存進去資料庫
+                    score: `${myTotal}-${oppTotal}`,
+                    rounds: roundsDetails // 將每小局詳細細節打包送入 JSON
                 });
             });
 
@@ -286,7 +352,7 @@
             if (error) {
                 alert('上傳雲端失敗: ' + error.message);
             } else {
-                alert('戰績與局數比分成功登記！');
+                alert('招式戰績完美保存！');
                 document.getElementById('match-form').reset();
                 document.getElementById('my-beys-container').innerHTML = `
                     <input type="text" class="my-bey-input w-full p-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-center h-8" placeholder="我方陀螺 1" required>
@@ -318,9 +384,20 @@
                 const card = document.createElement('div');
                 card.className = 'bg-slate-800 p-3 rounded-xl border border-slate-700 text-xs space-y-1.5';
                 let stagesHtml = '';
+                
                 m.stages?.forEach(s => {
-                    // 顯示比分與對手三顆陀螺
                     const oppBeysStr = s.oppSetups && s.oppSetups.length > 0 ? ` ［${s.oppSetups.join(' / ')}］` : '';
+                    
+                    // 🌟 核心升級：解析並將每一局的歷史招式用文字標籤還原出來
+                    let roundsDetailsHtml = '';
+                    if(s.rounds && s.rounds.length > 0) {
+                        const pills = s.rounds.map((r, i) => {
+                            const isMy = r.winner === 'MY';
+                            return `<span class="inline-block text-[9px] px-1 py-0.5 rounded ${isMy ? 'bg-indigo-950/60 text-indigo-300 border border-indigo-900':'bg-rose-950/60 text-rose-300 border border-rose-900'}">局${i+1}:${isMy?'我':'敵'}${r.actionText}+${r.points}</span>`;
+                        }).join(' ');
+                        roundsDetailsHtml = `<div class="flex flex-wrap gap-1 mt-1">${pills}</div>`;
+                    }
+
                     stagesHtml += `
                         <div class="bg-slate-900/50 p-2 rounded border border-slate-700/50">
                             <div class="flex justify-between items-center font-bold">
@@ -329,7 +406,8 @@
                                     ${s.score || ''} ${s.stageResult === 'WIN' ? '晉級':'淘汰'}
                                 </span>
                             </div>
-                            ${oppBeysStr ? `<div class="text-[10px] text-amber-500/80 mt-1 font-medium">敵方陣容:${oppBeysStr}</div>` : ''}
+                            ${oppBeysStr ? `<div class="text-[10px] text-amber-500/70 mt-0.5 font-medium">敵方陣容:${oppBeysStr}</div>` : ''}
+                            ${roundsDetailsHtml}
                         </div>
                     `;
                 });
