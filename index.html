@@ -24,7 +24,6 @@
                 <div>
                     <div class="text-sm font-black text-white tracking-widest uppercase glow-text">BeybladeX</div>
                     <h1 class="text-2xl font-black text-indigo-400 tracking-wider mt-0.5">戰鬥陀螺紀錄站</h1>
-                    <p class="text-gray-400 text-xs mt-0.5">多用戶雲端版 • 賽制計分精準版</p>
                 </div>
                 <div id="user-status-area" class="text-right"></div>
             </div>
@@ -36,7 +35,7 @@
                 <p class="text-xs text-gray-400">註冊專屬帳號，即可擁有個人化大數據分析與隨身雲端筆記。</p>
             </div>
             
-            <button id="btn-google" class="w-full bg-white hover:bg-gray-100 text-gray-900 font-bold text-xs py-2.5 rounded-lg transition h-11 flex items-center justify-center gap-2 border border-gray-300 shadow-sm（按鈕樣式）">
+            <button id="btn-google" class="w-full bg-white hover:bg-gray-100 text-gray-900 font-bold text-xs py-2.5 rounded-lg transition h-11 flex items-center justify-center gap-2 border border-gray-300 shadow-sm">
                 <svg class="w-4 h-4" viewBox="0 0 24 24">
                     <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.866-3.577-7.866-8s3.536-8 7.866-8c2.46 0 4.105 1.025 5.047 1.926l3.327-3.2A12.986 12.986 0 0 0 12.24 0c-7.18 0-13 5.82-13 13s5.82 13 13 13c7.5 0 12.48-5.26 12.48-12.69 0-.85-.09-1.5-.2-2.025H12.24z"/>
                 </svg>
@@ -97,7 +96,7 @@
                 </div>
                 <div class="space-y-1.5">
                     <textarea id="import-text" rows="2" placeholder="格式範例: 2026-07-09, 台北店賽, 64人, 150, 雙人對戰貼紙" class="w-full p-2 text-xs bg-gray-900 border border-gray-700 rounded-lg text-gray-300 outline-none resize-none font-mono placeholder:text-gray-600"></textarea>
-                    <button type="button" id="btn-import-parse" class="w-full bg-gray-700 hover:bg-gray-600 text-gray-200 text-xs font-bold py-1.5 rounded-lg transition border border-gray-600 shadow-sm">
+                    <button type="button" id="import-parse-btn" class="w-full bg-gray-700 hover:bg-gray-600 text-gray-200 text-xs font-bold py-1.5 rounded-lg transition border border-gray-600 shadow-sm">
                         ⚡ 解析並填入下方表單
                     </button>
                 </div>
@@ -161,7 +160,7 @@
 
     <script>
         const url_config = "https://erfhyiptjwodutdwxitb.supabase.co";
-        const key_config = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyZmh5aXB0andvZHV0ZHd4aXRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MTE0MTUsImV4cCI6MjA5OTE4NzQxNX0.8xT-uHvCyw61JZ4qDihz5j2F0sd6ROWpr_1kt2ELgEc";
+        const key_config = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyZmh5aXB0andvZHV0ZHd4aXRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MTE0MTUsImV4cCI6MjA5OTA4NzQxNX0.8xT-uHvCyw61JZ4qDihz5j2F0sd6ROWpr_1kt2ELgEc";
 
         const gyroSupabase = window.supabase.createClient(url_config, key_config);
         let currentUser = null;
@@ -208,7 +207,7 @@
         });
 
         // 匯入解析邏輯
-        document.getElementById('btn-import-parse').addEventListener('click', () => {
+        document.getElementById('import-parse-btn').addEventListener('click', () => {
             const importText = document.getElementById('import-text').value.trim();
             if(!importText) return alert('請先輸入或貼上要匯入的文字資料！');
             
